@@ -323,28 +323,32 @@ html, body {
 }
 .toast.show { opacity: 0.95; transform: translateX(-50%) translateY(-6px); }
 
-/* ===== 식물 사진 표시 ===== */
+/* ===== 식물 사진 표시 (모든 사진 동일 크기로 정규화) ===== */
+/* 원본 비율/해상도와 무관하게 컨테이너에 꽉 차도록 잘라서 표시(object-fit:cover) */
 .plant-photo { display: block; object-fit: cover; }
 
-/* 도감 카드 썸네일 */
-.dex-emoji .plant-photo.dex-photo {
-  width: 100%; height: 100%; border-radius: 10px;
+/* 도감 카드 썸네일: 정사각 영역에 맞춤 */
+.dex-card .dex-emoji {
+  width: 100%; flex: 1; position: relative; overflow: hidden; border-radius: 10px;
 }
-.dex-card .dex-emoji { width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.dex-card .dex-emoji .dex-photo { max-height: 92px; }
+.dex-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px;
+}
 
-/* 상세 모달 히어로 사진 */
-.pm-hero.has-photo { padding: 0; height: 190px; }
-.pm-photo { width: 100%; height: 100%; }
+/* 상세 모달 히어로 사진: 고정 높이(200px) 영역에 꽉 채워 잘라 표시 */
+.pm-hero.has-photo { padding: 0; height: 200px; position: relative; overflow: hidden; }
+.pm-hero.has-photo .pm-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
 
-/* 수집 팝업 사진 */
+/* 수집 팝업 사진: 정사각 고정 */
 .collect-emoji.has-photo { height: auto; }
 .collect-photo {
   width: 150px; height: 150px; border-radius: 18px; margin: 0 auto;
   box-shadow: 0 6px 18px rgba(0,0,0,0.18);
 }
 
-/* 지도 완료 핀 사진 */
+/* 지도 완료 핀 사진: 원형 꽉 채움 */
 .marker.done.has-photo { padding: 0; overflow: hidden; }
 .marker-photo { width: 100%; height: 100%; border-radius: 50%; }
 
