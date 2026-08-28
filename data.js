@@ -3,18 +3,51 @@
 
 // 수목원 주요 구역 정의 (인터랙티브 지도용)
 // x, y 값은 국립세종수목원 안내도 이미지(assets/sejong-map.png) 기준 0~100(%) 좌표
-// 실제 지도의 시설 위치에 맞춰 배치
 const ZONES = [
-  { id: "greenhouse",  name: "사계절전시온실", color: "#3f9d5a", x: 27, y: 66 },
-  { id: "bonsai",      name: "분재원",         color: "#8a6d3b", x: 54, y: 37 },
-  { id: "garden",      name: "한국전통정원",   color: "#c47f3d", x: 43, y: 47 },
-  { id: "rose",        name: "뭇꽃원",         color: "#d75d7c", x: 71, y: 42 },
-  { id: "conifer",     name: "민속식물원",     color: "#2f6d4f", x: 84, y: 29 },
-  { id: "herb",        name: "희귀특산식물전시온실", color: "#6fa03c", x: 64, y: 27 },
+  // 왼쪽 하단(입구·서편)
+  { id: "kid_forest",        name: "유아숲체험원",           color: "#6fa03c", x: 9,  y: 49 },
+  { id: "research",          name: "연구동",                 color: "#7a8472", x: 17, y: 47 },
+  { id: "garden_mgmt",       name: "한국수목원정원관리원",   color: "#7a8472", x: 19, y: 53 },
+  { id: "greening_memorial", name: "국토녹화기념관",         color: "#8a6d3b", x: 20, y: 59 },
+  { id: "greenhouse",        name: "사계절전시온실",         color: "#3f9d5a", x: 26, y: 66 },
+  { id: "sense_garden",      name: "감각정원",               color: "#c47f3d", x: 31, y: 57 },
+  { id: "forest_garden",     name: "숲정원",                 color: "#3f9d5a", x: 25, y: 43 },
+  { id: "hamyangji",         name: "함양지",                 color: "#3d7fd7", x: 17, y: 41 },
+  // 중앙(하천·전통정원)
+  { id: "cheongryu",         name: "청류지원",               color: "#3d7fd7", x: 33, y: 47 },
+  { id: "festival_yard",     name: "축제마당",               color: "#d18e1c", x: 36, y: 57 },
+  { id: "flower_road",       name: "사계절꽃길",             color: "#d75d7c", x: 36, y: 64 },
+  { id: "ifla_garden",       name: "세계조경가대회기념정원", color: "#6fa03c", x: 33, y: 68 },
+  { id: "garden_center",     name: "가든센터",               color: "#7a8472", x: 41, y: 67 },
+  { id: "visitor_center",    name: "방문자센터",             color: "#7a8472", x: 45, y: 71 },
+  { id: "ieum_garden",       name: "이음정원",               color: "#c47f3d", x: 44, y: 60 },
+  { id: "pine_road",         name: "큰키소나무길",           color: "#2f6d4f", x: 41, y: 53 },
+  { id: "traditional_seoseo",name: "한국전통정원(별서정원)", color: "#c47f3d", x: 40, y: 44 },
+  { id: "wall_garden",       name: "담장정원",               color: "#8a6d3b", x: 37, y: 35 },
+  { id: "healing_garden",    name: "치유정원",               color: "#3f9d5a", x: 36, y: 31 },
+  { id: "successor_garden",  name: "후계목정원",             color: "#2f6d4f", x: 51, y: 61 },
+  { id: "traditional_gung",  name: "한국전통정원(궁궐정원)", color: "#c47f3d", x: 51, y: 45 },
+  { id: "bonsai",            name: "분재원",                 color: "#8a6d3b", x: 54, y: 37 },
+  // 중앙 상단(생태·주제원)
+  { id: "pollinator",        name: "폴리네이터가든",         color: "#e0a92e", x: 51, y: 22 },
+  { id: "amphibian",         name: "양서류관찰원",           color: "#3d7fd7", x: 58, y: 20 },
+  { id: "wildflower",        name: "야생화원",               color: "#d75d7c", x: 62, y: 30 },
+  { id: "rare_greenhouse",   name: "희귀특산식물전시온실",   color: "#3f9d5a", x: 66, y: 26 },
+  { id: "rare_garden",       name: "희귀특산식물원",         color: "#6fa03c", x: 66, y: 34 },
+  { id: "kid_garden",        name: "어린이정원",             color: "#6fa03c", x: 61, y: 43 },
+  { id: "life_garden",       name: "생활정원",               color: "#c47f3d", x: 64, y: 50 },
+  { id: "share_garden",      name: "공유정원",               color: "#6fa03c", x: 69, y: 56 },
+  { id: "iris_garden",       name: "붓꽃원",                 color: "#7d5fd7", x: 72, y: 42 },
+  { id: "maple_garden",      name: "단풍정원",               color: "#c0392b", x: 75, y: 45 },
+  // 오른쪽 상단(동편)
+  { id: "wetland_forest",    name: "습지형생태숲",           color: "#3d7fd7", x: 74, y: 12 },
+  { id: "rose_of_sharon",    name: "무궁화원",               color: "#d75d7c", x: 79, y: 18 },
+  { id: "garden_plant_plot", name: "정원식물가늠터",         color: "#6fa03c", x: 86, y: 20 },
+  { id: "folk_plant",        name: "민속식물원",             color: "#2f6d4f", x: 84, y: 29 },
+  { id: "chisan",            name: "치산녹화원",             color: "#8a6d3b", x: 93, y: 24 },
 ];
 
 // 뱃지(업적) 정의
-// 뱃지: 사용자별 랜덤 목표 5종 진행도(count) / 전체 완료(complete) 기준
 const BADGES = [
   { id: "first_find",  name: "첫 식물 발견",  icon: "sprout",  desc: "첫 번째 목표 식물을 찾았어요.",          condition: { type: "count", value: 1 } },
   { id: "getting_warm", name: "탐험의 시작",  icon: "footprints", desc: "목표 식물 3종을 찾았어요.",            condition: { type: "count", value: 3 } },
@@ -22,47 +55,67 @@ const BADGES = [
   { id: "sejong_explorer", name: "세종의 탐험가", icon: "award", desc: "내게 배정된 목표 식물을 모두 찾아 미션을 완료했어요!", condition: { type: "complete" } },
 ];
 
-// 식물 데이터 (30종)
+// 식물 데이터 (10종 v1)
+// zone: 지도 핀이 찍히는 주 위치. locations: 안내판 표기용 전체 위치.
+// img: 사진 경로(있으면 사진, 없으면 emoji 표시).
 const PLANTS = [
-  // 사계절온실
-  { id: "plant_001", name: "극락조화", sci: "Strelitzia reginae", zone: "greenhouse", bloom: "겨울~봄", emoji: "🦜", hint: "온실 입구, 새를 닮은 주황색 꽃을 찾아보세요.", desc: "새가 날개를 편 듯한 화려한 꽃 모양 때문에 '극락조화'라 불려요. 남아프리카가 고향이랍니다." },
-  { id: "plant_002", name: "부겐빌레아", sci: "Bougainvillea glabra", zone: "greenhouse", bloom: "봄~가을", emoji: "🌺", hint: "온실 벽면을 타고 오르는 분홍빛 넝쿨을 살펴보세요.", desc: "화려한 색은 꽃이 아니라 잎(포엽)이에요. 진짜 꽃은 가운데 작고 하얀 부분이랍니다." },
-  { id: "plant_003", name: "몬스테라", sci: "Monstera deliciosa", zone: "greenhouse", bloom: "여름", emoji: "🌿", hint: "구멍 뚫린 커다란 잎을 가진 열대 식물을 찾으세요.", desc: "잎에 자연스럽게 구멍이 나 있어 '스위스 치즈 식물'이라고도 불려요." },
-  { id: "plant_004", name: "히비스커스", sci: "Hibiscus rosa-sinensis", zone: "greenhouse", bloom: "여름~가을", emoji: "🌸", hint: "크고 붉은 나팔 모양 꽃을 온실 중앙에서 찾아보세요.", desc: "하와이를 상징하는 꽃으로, 차로 우려 마시기도 하는 열대의 대표 식물이에요." },
-  { id: "plant_005", name: "칼라디움", sci: "Caladium bicolor", zone: "greenhouse", bloom: "여름", emoji: "🍃", hint: "하트 모양의 알록달록한 잎을 살펴보세요.", desc: "꽃보다 잎이 아름다운 관엽식물로, 잎마다 무늬가 모두 달라요." },
+  { id: "plant_001", name: "노랑땅나리", sci: "", zone: "rare_greenhouse",
+    locations: "희귀특산식물전시온실", bloom: "7~8월", emoji: "🌼",
+    img: "assets/plants/plant_001.png",
+    hint: "희귀특산식물전시온실에서 땅을 바라보며 피는 주황빛 나리를 찾아보세요.",
+    desc: "왜 이름이 '땅'나리일까? 그 이유는 땅나리의 꽃이 땅을 바라보기 때문에!" },
 
-  // 분재원
-  { id: "plant_006", name: "소나무 분재", sci: "Pinus densiflora", zone: "bonsai", bloom: "봄", emoji: "🌲", hint: "작은 화분 속 굽은 노송을 관찰해 보세요.", desc: "수십 년간 정성껏 다듬어진 소나무 분재는 한국 분재의 백미로 꼽혀요." },
-  { id: "plant_007", name: "단풍나무 분재", sci: "Acer palmatum", zone: "bonsai", bloom: "봄", emoji: "🍁", hint: "손바닥 모양 잎을 가진 작은 나무를 찾아보세요.", desc: "가을이면 화분 속에서도 붉게 물드는 모습이 장관이에요." },
-  { id: "plant_008", name: "주목 분재", sci: "Taxus cuspidata", zone: "bonsai", bloom: "봄", emoji: "🌳", hint: "붉은 열매가 달린 작은 침엽 분재를 살펴보세요.", desc: "'살아 천년 죽어 천년'이라 불릴 만큼 오래 사는 나무예요." },
-  { id: "plant_009", name: "모과나무 분재", sci: "Chaenomeles sinensis", zone: "bonsai", bloom: "봄", emoji: "🍐", hint: "울퉁불퉁한 노란 열매가 열리는 분재를 찾아보세요.", desc: "향기로운 열매로 유명하며, 매끈한 얼룩 수피가 관상 포인트예요." },
-  { id: "plant_010", name: "진달래 분재", sci: "Rhododendron mucronulatum", zone: "bonsai", bloom: "이른 봄", emoji: "🌷", hint: "이른 봄 분홍 꽃이 잎보다 먼저 피는 분재예요.", desc: "잎이 나기 전 연분홍 꽃이 먼저 피어 봄소식을 알려주는 우리 꽃이에요." },
+  { id: "plant_002", name: "해국", sci: "", zone: "pine_road",
+    locations: "큰키소나무길, 한국전통정원(별서정원)", bloom: "7~11월", emoji: "🌸",
+    img: "assets/plants/plant_002.png",
+    hint: "큰키소나무길과 별서정원 주변, 국화를 닮은 연보라 꽃을 찾아보세요.",
+    desc: "이름이 '해'국일까? 국화를 닮은 이 꽃이 바닷가 바위틈에서 자라기 때문! 한자로 '海菊(바다 국화)'라는 뜻을 담고 있어." },
 
-  // 한국전통정원
-  { id: "plant_011", name: "매화나무", sci: "Prunus mume", zone: "garden", bloom: "이른 봄", emoji: "🌼", hint: "연못가 정자 근처, 눈 속에서도 피는 꽃을 찾으세요.", desc: "선비의 지조를 상징하는 사군자 중 하나로, 추위 속에서도 꽃을 피워요." },
-  { id: "plant_012", name: "배롱나무", sci: "Lagerstroemia indica", zone: "garden", bloom: "여름", emoji: "🌸", hint: "매끈한 줄기에 백일 동안 피는 분홍 꽃을 찾으세요.", desc: "꽃이 백일 동안 핀다 하여 '백일홍 나무'라고도 불려요." },
-  { id: "plant_013", name: "연꽃", sci: "Nelumbo nucifera", zone: "garden", bloom: "여름", emoji: "🪷", hint: "전통 정원 연못 위에 뜬 큰 잎과 꽃을 살펴보세요.", desc: "진흙 속에서 피어도 물들지 않아 청정함의 상징으로 여겨져요." },
-  { id: "plant_014", name: "대나무", sci: "Phyllostachys nigra", zone: "garden", bloom: "드물게", emoji: "🎋", hint: "바람에 서걱이는 곧은 대숲을 찾아보세요.", desc: "곧고 푸른 기상 덕에 사군자의 하나로 사랑받는 식물이에요." },
-  { id: "plant_015", name: "국화", sci: "Chrysanthemum morifolium", zone: "garden", bloom: "가을", emoji: "🌻", hint: "가을 정원의 노랗고 하얀 겹꽃을 찾아보세요.", desc: "서리를 이기고 피어 절개를 상징하는 사군자의 하나예요." },
+  { id: "plant_003", name: "억새", sci: "", zone: "sense_garden",
+    locations: "감각정원, 후계목정원", bloom: "9~10월", emoji: "🌾",
+    img: "assets/plants/plant_003.png",
+    hint: "감각정원과 후계목정원에서 바람에 흩날리는 은빛 이삭을 찾아보세요.",
+    desc: "억새의 은빛 이삭은 사실 '꽃'일까? 맞아, 그게 바로 억새의 꽃이야! 화려한 꽃잎 대신 바람에 흩날리는 은백색 이삭으로 승부하는 벼과 식물이라 가을 억새밭이 장관을 이루는 거지." },
 
-  // 장미원
-  { id: "plant_016", name: "붉은 장미", sci: "Rosa 'Crimson'", zone: "rose", bloom: "봄~가을", emoji: "🌹", hint: "장미 아치문 아래 가장 붉은 꽃을 찾으세요.", desc: "사랑을 상징하는 대표적인 꽃으로, 향기와 색이 가장 진해요." },
-  { id: "plant_017", name: "덩굴장미", sci: "Rosa 'Climbing'", zone: "rose", bloom: "봄~여름", emoji: "🌺", hint: "울타리를 타고 오르는 장미 넝쿨을 살펴보세요.", desc: "벽과 아치를 아름답게 뒤덮어 장미원의 터널을 만들어요." },
-  { id: "plant_018", name: "미니장미", sci: "Rosa chinensis 'Minima'", zone: "rose", bloom: "봄~가을", emoji: "🌷", hint: "손톱만 한 작은 장미 화단을 찾아보세요.", desc: "작지만 사계절 내내 꽃을 피우는 야무진 장미예요." },
-  { id: "plant_019", name: "노랑장미", sci: "Rosa 'Golden'", zone: "rose", bloom: "봄~가을", emoji: "🌼", hint: "햇살처럼 노란 장미 무리를 찾아보세요.", desc: "우정과 기쁨을 상징하며 밝은 정원 분위기를 만들어줘요." },
+  { id: "plant_004", name: "향등골나물", sci: "", zone: "traditional_gung",
+    locations: "한국전통정원(궁궐정원), 공유정원", bloom: "8~10월", emoji: "🌿",
+    img: "assets/plants/plant_004.png",
+    hint: "궁궐정원과 공유정원에서 은은한 향이 나는 흰 꽃 무리를 찾아보세요.",
+    desc: "왜 이름에 '등골'이 들어갈까? 잎맥이 마치 사람 등뼈(등골)처럼 뚜렷하게 갈라진 모양이라서 붙은 이름이야. 여기에 은은한 향이 나서 '향'자가 앞에 붙었지." },
 
-  // 침엽수원
-  { id: "plant_020", name: "구상나무", sci: "Abies koreana", zone: "conifer", bloom: "봄", emoji: "🌲", hint: "은빛 뒷면 잎을 가진 우리나라 특산 나무를 찾으세요.", desc: "한라산과 지리산에 자생하는 한국 특산 침엽수예요." },
-  { id: "plant_021", name: "잣나무", sci: "Pinus koraiensis", zone: "conifer", bloom: "봄", emoji: "🌰", hint: "다섯 개씩 뭉친 긴 바늘잎과 큰 솔방울을 찾으세요.", desc: "고소한 잣을 맺는 나무로, 잎이 다섯 개씩 모여 나요." },
-  { id: "plant_022", name: "메타세쿼이아", sci: "Metasequoia glyptostroboides", zone: "conifer", bloom: "봄", emoji: "🌳", hint: "하늘로 곧게 뻗은 삼각형 큰 나무를 올려다보세요.", desc: "'살아있는 화석'이라 불리며, 가을에 붉게 물드는 낙엽 침엽수예요." },
-  { id: "plant_023", name: "전나무", sci: "Abies holophylla", zone: "conifer", bloom: "봄", emoji: "🎄", hint: "짙은 그늘을 드리우는 곧은 침엽수를 찾아보세요.", desc: "곧고 크게 자라 사찰 진입로에 많이 심는 상록수예요." },
-  { id: "plant_024", name: "향나무", sci: "Juniperus chinensis", zone: "conifer", bloom: "봄", emoji: "🌲", hint: "비늘 같은 잎에서 은은한 향이 나는 나무를 찾으세요.", desc: "목재에서 향이 나 예부터 향으로 쓰였던 나무예요." },
-  { id: "plant_025", name: "주목", sci: "Taxus cuspidata", zone: "conifer", bloom: "봄", emoji: "🔴", hint: "붉고 말랑한 열매가 달린 짧은 침엽수를 찾으세요.", desc: "붉은 헛씨껍질이 특징이며 매우 느리게 자라 오래 사는 나무예요." },
+  { id: "plant_005", name: "은목서", sci: "", zone: "rare_garden",
+    locations: "희귀특산식물원", bloom: "9~10월", emoji: "🤍",
+    img: "assets/plants/plant_005.png",
+    hint: "희귀특산식물원에서 새하얀 꽃과 은은한 향이 나는 나무를 찾아보세요.",
+    desc: "왜 '은'목서일까? 사촌 격인 '금목서'는 주황빛 꽃을 피우는 반면, 은목서는 새하얀 꽃을 피우기 때문에 은빛에 빗대어 이름 붙었어. 향은 오히려 금목서보다 은은한 편이야." },
 
-  // 약용식물원
-  { id: "plant_026", name: "인삼", sci: "Panax ginseng", zone: "herb", bloom: "여름", emoji: "🌱", hint: "그늘막 아래 다섯 갈래 잎 식물을 찾아보세요.", desc: "한국을 대표하는 약초로, 뿌리가 사람 모양을 닮았다 하여 이름 붙었어요." },
-  { id: "plant_027", name: "당귀", sci: "Angelica gigas", zone: "herb", bloom: "여름~가을", emoji: "🌿", hint: "짙은 자주색 우산 모양 꽃을 찾아보세요.", desc: "예부터 여성 건강에 좋은 약초로 알려진 자주빛 우산꽃 식물이에요." },
-  { id: "plant_028", name: "도라지", sci: "Platycodon grandiflorus", zone: "herb", bloom: "여름", emoji: "🔔", hint: "별 모양 보라·흰 꽃과 풍선 봉오리를 찾아보세요.", desc: "봉오리가 풍선처럼 부풀어 '풍선꽃'이라고도 불리는 약초예요." },
-  { id: "plant_029", name: "구절초", sci: "Dendranthema zawadskii", zone: "herb", bloom: "가을", emoji: "🌼", hint: "가을 들녘 하얀 국화 닮은 꽃을 찾아보세요.", desc: "가을을 대표하는 들국화로, 예부터 부인병 약재로 쓰였어요." },
-  { id: "plant_030", name: "작약", sci: "Paeonia lactiflora", zone: "herb", bloom: "늦봄", emoji: "🌸", hint: "모란을 닮은 크고 탐스러운 겹꽃을 찾아보세요.", desc: "뿌리를 약재로 쓰며, 함박꽃이라 불릴 만큼 크고 화려한 꽃을 피워요." },
+  { id: "plant_006", name: "노랑코스모스", sci: "", zone: "folk_plant",
+    locations: "민속식물원", bloom: "6~10월", emoji: "🌻",
+    img: "assets/plants/plant_006.png",
+    hint: "민속식물원에서 노랑·주황빛으로만 피는 코스모스를 찾아보세요.",
+    desc: "일반 코스모스와 뭐가 다를까? 우리가 흔히 아는 분홍·흰색 코스모스와 달리 노란색과 주황색 계열로만 피는 별도의 종이야. 멕시코가 원산지라 더위에 강해서 한여름에도 꽃을 볼 수 있어." },
+
+  { id: "plant_007", name: "천사의나팔", sci: "", zone: "greenhouse",
+    locations: "사계절전시온실", bloom: "6~10월", emoji: "🎺",
+    img: "assets/plants/plant_007.png",
+    hint: "사계절전시온실에서 아래로 늘어져 피는 커다란 나팔 모양 꽃을 찾아보세요.",
+    desc: "왜 '천사'의 나팔일까? 꽃이 나팔 모양으로 아래를 향해 늘어져 피는데, 그 모습이 마치 천사가 부는 나팔 같다고 해서 붙여진 이름이야. 참고로 꽃이 위를 향해 피는 독말풀 종류는 '악마의 나팔'이라 불려서 서로 대조를 이뤄." },
+
+  { id: "plant_008", name: "핑크뮬리", sci: "", zone: "forest_garden",
+    locations: "숲정원", bloom: "9~10월", emoji: "🌸",
+    img: "assets/plants/plant_008.png",
+    hint: "숲정원에서 분홍빛 안개처럼 보이는 풀밭을 찾아보세요.",
+    desc: "저 몽환적인 분홍빛 안개 같은 게 정말 꽃일까? 맞아, 아주 작은 꽃들이 무수히 모인 이삭이 바람에 흩날리며 안개처럼 보이는 거야. 북미가 원산지인 벼과 식물이라 우리나라에선 관상용으로 심어서 가을 명소를 만들지." },
+
+  { id: "plant_009", name: "미국미역취", sci: "", zone: "traditional_seoseo",
+    locations: "한국전통정원(별서정원)", bloom: "8~10월", emoji: "💛",
+    img: "assets/plants/plant_009.png",
+    hint: "별서정원에서 노란 꽃이 무리 지어 피는 키 큰 풀을 찾아보세요.",
+    desc: "이름에 왜 '미국'이 붙었을까? 우리나라 토종 '미역취'와 생김새는 닮았지만, 북미(미국)에서 건너온 귀화식물이기 때문이야. 번식력이 워낙 강해서 생태계교란종으로도 지정된, 그야말로 '침입자' 식물이지." },
+
+  { id: "plant_010", name: "가는잎향유", sci: "", zone: "rare_garden",
+    locations: "희귀특산식물원", bloom: "9~10월", emoji: "💜",
+    img: "assets/plants/plant_010.png",
+    hint: "희귀특산식물원에서 잎을 스치면 향이 나는 보랏빛 꽃을 찾아보세요.",
+    desc: "'향유'라는 이름은 어디서 왔을까? 잎을 스치기만 해도 진한 향이 퍼져서 '향기 나는 기름(香薷)'이라는 뜻의 한자에서 유래했어. 그중에서도 잎이 가늘고 좁은 품종이라 '가는잎'이 앞에 붙은 거야." },
 ];

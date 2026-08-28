@@ -58,6 +58,22 @@
     if (window.lucide && typeof lucide.createIcons === "function") lucide.createIcons();
   }
 
+  // 식물 대표 이미지 HTML: 사진(img) 있으면 사진, 없으면 이모지.
+  // 사진 로드 실패 시 자동으로 이모지로 대체(onerror).
+  function plantVisual(p, sizeClass) {
+    if (p.img) {
+      return '<img class="plant-photo ' + (sizeClass || '') + '" src="' + p.img + '" alt="' + p.name +
+        '" onerror="this.onerror=null;this.outerHTML=\'<span>' + (p.emoji || '🌿') + '</span>\'">';
+    }
+    return '<span>' + (p.emoji || '🌿') + '</span>';
+  }
+  // 위치 표기: locations(전체 위치 텍스트) 우선, 없으면 zone 이름
+  function plantLocationText(p) {
+    if (p.locations) return p.locations;
+    var z = zoneById(p.zone);
+    return z ? z.name : '';
+  }
+
   function fmtDate(iso) {
     const d = new Date(iso);
     const p = (n) => String(n).padStart(2, "0");
@@ -120,10 +136,10 @@
       if (!z) return;
       const pos = placePin(z, p.id);
       const m = document.createElement("div");
-      m.className = "marker done";
+      m.className = "marker done" + (p.img ? " has-photo" : "");
       m.style.left = pos.x + "%";
       m.style.top = pos.y + "%";
-      m.textContent = p.emoji;
+      m.innerHTML = plantVisual(p, "marker-photo");
       m.title = p.name;
       m.addEventListener("click", () => openPlantModal(p.id, "map"));
       markers.appendChild(m);
@@ -165,7 +181,7 @@
       card.innerHTML =
         `<span class="dex-num">#${String(idx + 1).padStart(2, "0")}</span>` +
         (isNew ? `<span class="badge-new">NEW</span>` : "") +
-        `<div class="dex-emoji">${done ? p.emoji : "🌱"}</div>` +
+        `<div class="dex-emoji">${done ? plantVisual(p, "dex-photo") : "🌱"}</div>` +
         `<div class="dex-name">${done ? p.name : "？？？"}</div>`;
       card.addEventListener("click", () => openPlantModal(p.id, "dex"));
       grid.appendChild(card);
@@ -274,16 +290,16 @@
     let body;
     if (done) {
       body =
-        `<div class="pm-hero" style="background:${z ? z.color + "22" : "#e3f0e5"}">` +
-          `<span>${p.emoji}</span>` +
+        `<div class="pm-hero ${p.img ? "has-photo" : ""}" style="background:${z ? z.color + "22" : "#e3f0e5"}">` +
+          plantVisual(p, "pm-photo") +
           `<div class="pm-close"><button class="icon-btn" data-close="plant"><i data-lucide="x"></i></button></div>` +
         `</div>` +
         `<div class="pm-body">` +
           `<h2 class="pm-name">${p.name}</h2>` +
-          `<div class="pm-sci">${p.sci}</div>` +
+          (p.sci ? `<div class="pm-sci">${p.sci}</div>` : "") +
           `<div class="pm-tags">` +
-            `<span class="pm-tag">📍 ${z ? z.name : ""}</span>` +
-            `<span class="pm-tag">🌸 ${p.bloom}</span>` +
+            `<span class="pm-tag">📍 ${plantLocationText(p)}</span>` +
+            (p.bloom ? `<span class="pm-tag">🌸 ${p.bloom}</span>` : "") +
           `</div>` +
           `<p class="pm-desc">${p.desc}</p>` +
           `<div class="pm-found"><i data-lucide="calendar-check"></i> 발견 일시: ${fmtDate(state.collected[id])}</div>` +
@@ -298,7 +314,7 @@
           `<h2 class="pm-name">？？？</h2>` +
           `<div class="pm-sci">아직 발견하지 못한 식물</div>` +
           `<div class="pm-tags">` +
-            `<span class="pm-tag">📍 ${z ? z.name : ""}</span>` +
+            `<span class="pm-tag">📍 ${plantLocationText(p)}</span>` +
           `</div>` +
           `<div class="pm-locked-note"><i data-lucide="map-pinned"></i><div><strong>위치 힌트</strong><br>${p.hint}</div></div>` +
           `<div class="pm-locked-note"><i data-lucide="qr-code"></i><div>현장 푯말의 QR을 스캔하면 도감에 등록돼요.</div></div>` +
@@ -369,9 +385,9 @@
 
     card.innerHTML =
       `<div class="collect-badge">${already ? "이미 수집한 식물" : "NEW! 식물 발견"}</div>` +
-      `<div class="collect-emoji">${p.emoji}</div>` +
+      `<div class="collect-emoji ${p.img ? "has-photo" : ""}">${plantVisual(p, "collect-photo")}</div>` +
       `<div class="collect-name">${p.name}</div>` +
-      `<div class="collect-sci">${p.sci}</div>` +
+      (p.sci ? `<div class="collect-sci">${p.sci}</div>` : "") +
       (already
         ? `<div class="collect-already">이미 도감에 등록된 식물이에요.</div>`
         : `<div class="collect-msg">${z ? z.name + "의 " : ""}<strong>${p.name}</strong>을(를)<br>도감에 등록했어요! 🎉</div>` + badgeHtml + questHtml) +
