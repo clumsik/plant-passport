@@ -211,14 +211,16 @@ html, body {
 
 /* ===== 플로팅 스캔 버튼 ===== */
 .scan-fab {
-  position: fixed; right: calc(50% - 240px + 18px); bottom: 84px;
-  width: 58px; height: 58px; border-radius: 50%; border: none;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 92px;
+  min-width: 200px; height: 60px; border-radius: 999px; border: none;
+  padding: 0 26px; gap: 10px;
   background: linear-gradient(135deg, var(--gold), #d18e1c); color: #fff;
-  display: grid; place-items: center; cursor: pointer; z-index: 30;
-  box-shadow: 0 8px 20px rgba(209,142,28,0.45);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 30;
+  box-shadow: 0 8px 22px rgba(209,142,28,0.5);
+  font-size: 19px; font-weight: 800;
 }
-.scan-fab i { width: 26px; height: 26px; }
-@media (max-width: 496px) { .scan-fab { right: 18px; } }
+.scan-fab i { width: 28px; height: 28px; }
+.scan-fab .scan-fab-label { white-space: nowrap; }
 
 /* ===== 하단 탭 바 ===== */
 .tab-bar {
@@ -366,3 +368,64 @@ html, body {
 
 /* 오답 안내 배지 */
 .collect-badge.wrong { color: #e5484d; }
+
+/* ============================================================
+   가시성 향상 (노년층 접근성) — 폰트/버튼/탭 확대
+   ============================================================ */
+/* 헤더 */
+.header-text h1 { font-size: 23px; }
+.header-text p  { font-size: 15px; opacity: 0.9; }
+.logo-mark { width: 46px; height: 46px; }
+.logo-mark i { width: 26px; height: 26px; }
+
+/* 진행도 */
+.progress-label { font-size: 15px; }
+.progress-bar { height: 14px; }
+
+/* 섹션 제목/설명 */
+.section-head h2 { font-size: 21px; }
+.section-head h2 i { width: 22px; height: 22px; }
+.section-head p  { font-size: 15px; }
+
+/* 지도 범례 / 구역 라벨 */
+.legend { font-size: 15px; gap: 22px; }
+.legend .dot { width: 14px; height: 14px; }
+.zone-label { font-size: 13px; padding: 3px 9px; }
+
+/* 도감 카드 */
+.dex-name { font-size: 15px; }
+.dex-num  { font-size: 11px; }
+
+/* 뱃지 카드 */
+.badge-title { font-size: 15px; }
+.badge-desc  { font-size: 12.5px; line-height: 1.4; }
+.badge-icon { width: 60px; height: 60px; }
+.badge-icon i { width: 30px; height: 30px; }
+
+/* 하단 탭 바 (핵심 내비게이션) */
+.tab-btn { font-size: 14px; padding: 12px 0 14px; }
+.tab-btn i { width: 27px; height: 27px; }
+
+/* 식물 상세 모달 */
+.pm-name { font-size: 24px; }
+.pm-sci  { font-size: 15px; }
+.pm-tag  { font-size: 14px; padding: 6px 12px; }
+.pm-desc { font-size: 16px; line-height: 1.65; }
+.pm-locked-note { font-size: 15px; }
+.pm-locked-note i { width: 20px; height: 20px; }
+.pm-found { font-size: 14px; }
+
+/* 수집/오답 팝업 */
+.collect-badge { font-size: 14px; }
+.collect-name  { font-size: 26px; }
+.collect-sci   { font-size: 15px; }
+.collect-msg   { font-size: 16px; line-height: 1.6; }
+.collect-next  { font-size: 15px; line-height: 1.6; }
+.collect-btn   { font-size: 17px; padding: 15px 30px; }
+
+/* 지도 목표 완료 배너 */
+.map-clear-banner { font-size: 15px; padding: 10px 20px; }
+
+/* QR 스캐너 모달 */
+.scanner-head h3 { font-size: 19px; }
+.scanner-hint { font-size: 15px; }
