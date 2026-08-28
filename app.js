@@ -2,29 +2,88 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "sejong_plant_dex_v2";
+  const STORAGE_PREFIX = "sejong_plant_dex_v3_"; // 입장코드별 localStorage 키 접두사
+  const LAST_CODE_KEY = "sejong_last_code";        // 마지막 로그인 코드 기억
   const QUEST_SIZE = 5; // 사용자마다 찾아야 할 식물 수
 
-  // ---------- 상태(localStorage) ----------
-  // state = { collected: {...}, badges: {...}, quest: ["plant_003", ...] }
-  // quest: 사용자마다 랜덤으로 배정된 5개 식물 id (한 번 정하면 유지)
-  function loadState() {
+  // 현재 로그인한 입장 코드
+  let ticketCode = null;
+  function storageKey() { return STORAGE_PREFIX + (ticketCode || "guest"); }
+
+  // ---------- Supabase 클라이언트 ----------
+  let sb = null;
+  function initSupabase() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { collected: {}, badges: {}, quest: [] };
-      const s = JSON.parse(raw);
-      s.collected = s.collected || {};
-      s.badges = s.badges || {};
-      s.quest = Array.isArray(s.quest) ? s.quest : [];
-      return s;
+      const cfg = window.SUPABASE_CONFIG;
+      if (cfg && window.supabase && cfg.url && cfg.anonKey) {
+        sb = window.supabase.createClient(cfg.url, cfg.anonKey);
+      }
+    } catch (e) { sb = null; }
+  }
+
+  // ---------- 상태(localStorage + Supabase) ----------
+  // state = { collected: {...}, badges: {...}, quest: [...] }
+  function emptyState() { return { collected: {}, badges: {}, quest: [] }; }
+  function normalizeState(s) {
+    s = s || {};
+    s.collected = s.collected || {};
+    s.badges = s.badges || {};
+    s.quest = Array.isArray(s.quest) ? s.quest : [];
+    return s;
+  }
+  function loadLocalState() {
+    try {
+      const raw = localStorage.getItem(storageKey());
+      if (!raw) return emptyState();
+      return normalizeState(JSON.parse(raw));
     } catch (e) {
-      return { collected: {}, badges: {}, quest: [] };
+      return emptyState();
     }
   }
-  function saveState() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  function saveLocalState() {
+    try { localStorage.setItem(storageKey(), JSON.stringify(state)); } catch (e) {}
   }
-  let state = loadState();
+  // 로컬 저장 + 서버 저장(디바운스)
+  function saveState() {
+    saveLocalState();
+    scheduleRemoteSave();
+  }
+  let state = emptyState();
+
+  // ---------- Supabase 세션 저장/불러오기 ----------
+  // 6자리 코드로 서버에서 진행 불러오기 (없으면 null)
+  async function fetchRemoteSession(code) {
+    if (!sb) return null;
+    try {
+      const { data, error } = await sb
+        .from("sessions").select("quest,collected,badges")
+        .eq("ticket_code", code).maybeSingle();
+      if (error) { console.warn("fetch error", error.message); return null; }
+      if (!data) return null;
+      return normalizeState({
+        quest: data.quest, collected: data.collected, badges: data.badges,
+      });
+    } catch (e) { return null; }
+  }
+  // 현재 state를 서버에 저장(upsert)
+  async function upsertRemoteSession() {
+    if (!sb || !ticketCode) return;
+    try {
+      await sb.from("sessions").upsert({
+        ticket_code: ticketCode,
+        quest: state.quest,
+        collected: state.collected,
+        badges: state.badges,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "ticket_code" });
+    } catch (e) { /* 오프라인 등: 로컬엔 이미 저장됨 */ }
+  }
+  let remoteSaveTimer = null;
+  function scheduleRemoteSave() {
+    if (!sb || !ticketCode) return;
+    clearTimeout(remoteSaveTimer);
+    remoteSaveTimer = setTimeout(upsertRemoteSession, 600);
+  }
 
   // ---------- 헬퍼 ----------
   const $ = (sel) => document.querySelector(sel);
@@ -553,28 +612,95 @@
     renderBadges();
   }
 
-  // ---------- 초기화 ----------
-  function init() {
-    ensureQuest(); // 사용자별 랜덤 5종 목표 확정
+  // ---------- 앱 시작(로그인 성공 후 호출) ----------
+  function startApp() {
+    $("#login-overlay").classList.add("hidden");
+    ensureQuest();        // 목표 5종 확정(없으면 새로 배정 → 저장 시 서버 반영)
+    saveState();          // 새 배정/이어받기 상태를 로컬+서버에 반영
     renderAll();
     refreshIcons();
     handleCollectParam();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  // ---------- 로그인 처리 ----------
+  async function doLogin(code) {
+    const btn = $("#login-start");
+    const errEl = $("#login-error");
+    errEl.textContent = "";
+
+    if (!/^\d{6}$/.test(code)) {
+      errEl.textContent = "6자리 숫자를 정확히 입력해 주세요.";
+      return;
+    }
+    btn.classList.add("loading"); btn.disabled = true;
+
+    ticketCode = code;
+    try { localStorage.setItem(LAST_CODE_KEY, code); } catch (e) {}
+
+    // 1) 로컬 캐시 먼저 로드(오프라인 대비)
+    state = loadLocalState();
+
+    // 2) 서버에서 세션 조회 → 있으면 이어받기
+    const remote = await fetchRemoteSession(code);
+    if (remote) {
+      state = remote;
+      saveLocalState(); // 서버 데이터를 로컬에도 캐시
+    }
+
+    btn.classList.remove("loading"); btn.disabled = false;
+    startApp();
   }
 
-  // 디버그/데모용 전역 노출
+  function setupLoginUI() {
+    const input = $("#login-code");
+    const btn = $("#login-start");
+    // 숫자만 허용
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "").slice(0, 6);
+      $("#login-error").textContent = "";
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin(input.value.trim());
+    });
+    btn.addEventListener("click", () => doLogin(input.value.trim()));
+
+    // 지난번 로그인 코드가 있으면 미리 채워줌(편의)
+    try {
+      const last = localStorage.getItem(LAST_CODE_KEY);
+      if (last) input.value = last;
+    } catch (e) {}
+  }
+
+  // ---------- 부트스트랩 ----------
+  function boot() {
+    initSupabase();
+    setupLoginUI();
+    refreshIcons(); // 로그인 화면 아이콘 렌더
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  // 디버그/데모/운영용 전역 노출
   window.SejongDex = {
+    code: function () { return ticketCode; },
     collect: collectPlant,
     quest: function () { return state.quest.slice(); },
-    // 완전 초기화 + 새로운 랜덤 목표 재배정
-    reset: function () { localStorage.removeItem(STORAGE_KEY); state = loadState(); ensureQuest(); renderAll(); showToast("초기화 완료! 새로운 목표 " + questTotal() + "종이 배정됐어요."); },
-    // 목표만 새로 뽑기(수집 기록 유지)
-    reroll: function () { state.quest = []; ensureQuest(); state.badges = {}; renderAll(); showToast("새로운 목표 식물을 배정했어요."); },
+    // 현재 코드의 진행만 초기화 + 목표 재배정(로컬+서버)
+    reset: function () {
+      state = emptyState(); ensureQuest(); saveState(); renderAll();
+      showToast("초기화 완료! 새로운 목표 " + questTotal() + "종이 배정됐어요.");
+    },
+    // 로그아웃: 로그인 화면으로 (다른 번호로 시작)
+    logout: function () {
+      ticketCode = null;
+      $("#login-overlay").classList.remove("hidden");
+      $("#login-code").value = "";
+      $("#login-code").focus();
+    },
     // 목표 전부 수집(데모)
     collectAll: function () { ensureQuest(); state.quest.forEach((id) => { state.collected[id] = new Date().toISOString(); }); evaluateBadges(); saveState(); renderAll(); },
   };
