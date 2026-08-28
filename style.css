@@ -1,0 +1,324 @@
+/* ===== 세종수목원 식물도감 스타일 ===== */
+:root {
+  --green: #3f9d5a;
+  --green-deep: #2f6d4f;
+  --green-soft: #e3f0e5;
+  --cream: #f7f3e8;
+  --cream-card: #fffdf6;
+  --beige: #ece3cf;
+  --brown: #8a6d3b;
+  --ink: #2c3327;
+  --muted: #7a8472;
+  --gold: #e0a92e;
+  --shadow: 0 6px 20px rgba(47, 109, 79, 0.12);
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0; padding: 0;
+  font-family: "Apple SD Gothic Neo", "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  overscroll-behavior-y: none;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 20% 0%, #eef6ec 0%, transparent 40%),
+    radial-gradient(circle at 90% 10%, #f2ead6 0%, transparent 35%),
+    var(--cream);
+  position: relative;
+}
+
+/* ===== 헤더 ===== */
+.app-header {
+  padding: calc(env(safe-area-inset-top) + 16px) 18px 16px;
+  background: linear-gradient(135deg, var(--green) 0%, var(--green-deep) 100%);
+  color: #fff;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  box-shadow: var(--shadow);
+  position: sticky; top: 0; z-index: 20;
+}
+.header-title { display: flex; align-items: center; gap: 12px; }
+.logo-mark {
+  width: 40px; height: 40px; border-radius: 12px;
+  background: rgba(255,255,255,0.18);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.logo-mark i { width: 22px; height: 22px; }
+.header-text h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: -0.4px; }
+.header-text p { font-size: 12px; margin: 2px 0 0; opacity: 0.85; }
+
+.progress-wrap { margin-top: 16px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; }
+.progress-label strong { font-weight: 700; }
+.progress-bar { height: 10px; background: rgba(255,255,255,0.25); border-radius: 99px; overflow: hidden; }
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #ffe08a, #ffd24d);
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(.2,.8,.2,1);
+}
+
+/* ===== 메인/뷰 ===== */
+#main-view { flex: 1; padding: 18px 16px 96px; overflow-y: auto; }
+.view { display: none; animation: fade 0.35s ease; }
+.view.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.section-head { margin-bottom: 14px; }
+.section-head h2 { font-size: 17px; margin: 0; display: flex; align-items: center; gap: 7px; color: var(--green-deep); }
+.section-head h2 i { width: 18px; height: 18px; }
+.section-head p { font-size: 12.5px; color: var(--muted); margin: 4px 0 0; }
+
+/* ===== 지도 ===== */
+.map-frame {
+  position: relative; width: 100%; aspect-ratio: 1024 / 720;
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow); border: 3px solid #fff;
+  background: #eef4e0;
+}
+.map-bg {
+  position: absolute; inset: 0;
+  background-image: url("assets/sejong-map.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+/* 이미지 로드 실패/미첨부 시 대체 배경 */
+.map-bg.fallback {
+  background-image:
+    radial-gradient(circle at 27% 66%, #cfe8cf 0 12%, transparent 12%),
+    radial-gradient(circle at 54% 37%, #e9dcbf 0 10%, transparent 10%),
+    radial-gradient(circle at 43% 47%, #e6d3b0 0 11%, transparent 11%),
+    radial-gradient(circle at 71% 42%, #f0cdd8 0 10%, transparent 10%),
+    radial-gradient(circle at 84% 29%, #bfe0cc 0 13%, transparent 13%),
+    linear-gradient(160deg, #dff0dc 0%, #eef4e0 45%, #e9f1df 100%);
+}
+.zone-label {
+  position: absolute; transform: translate(-50%, -50%);
+  font-size: 10px; font-weight: 800; color: var(--green-deep);
+  background: rgba(255,255,255,0.88); padding: 2px 7px; border-radius: 99px;
+  white-space: nowrap; pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18); letter-spacing: -0.2px;
+}
+.marker {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  border: 2px solid #fff; font-size: 16px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  transition: transform 0.15s ease;
+}
+.marker:active { transform: translate(-50%, -50%) scale(0.9); }
+.marker.locked { background: #b9c3b2; color: #fff; font-weight: 800; }
+.marker.done { background: #fff; }
+.marker.done::after {
+  content: ""; position: absolute; top: -3px; right: -3px;
+  width: 12px; height: 12px; background: var(--gold);
+  border: 2px solid #fff; border-radius: 50%;
+}
+.marker.pulse { animation: pulse 1.4s infinite; }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(224,169,46,0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(224,169,46,0); }
+  100% { box-shadow: 0 0 0 0 rgba(224,169,46,0); }
+}
+
+.legend { display: flex; gap: 18px; justify-content: center; margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+.legend .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.dot-locked { background: #b9c3b2; }
+.dot-done { background: var(--gold); }
+
+/* ===== 도감 그리드 ===== */
+.dex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.dex-card {
+  position: relative; aspect-ratio: 3/4;
+  background: var(--cream-card); border-radius: 14px;
+  box-shadow: var(--shadow); cursor: pointer; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 8px; text-align: center; transition: transform 0.15s ease;
+  border: 1px solid #efe8d6;
+}
+.dex-card:active { transform: scale(0.96); }
+.dex-emoji { font-size: 40px; line-height: 1; margin-bottom: 6px; }
+.dex-name { font-size: 11.5px; font-weight: 700; color: var(--ink); }
+.dex-num { position: absolute; top: 6px; left: 8px; font-size: 9px; color: var(--muted); font-weight: 700; }
+.dex-card.locked .dex-emoji { filter: brightness(0) opacity(0.28); }
+.dex-card.locked .dex-name { color: transparent; background: #e4ddcb; border-radius: 4px; }
+.dex-card.locked { background: #efeade; }
+.badge-new {
+  position: absolute; top: 5px; right: 5px;
+  background: #e5484d; color: #fff; font-size: 8.5px; font-weight: 800;
+  padding: 2px 5px; border-radius: 6px; letter-spacing: 0.4px;
+}
+
+/* ===== 뱃지 그리드 ===== */
+.badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.badge-card {
+  background: var(--cream-card); border-radius: 14px; padding: 14px 8px;
+  text-align: center; box-shadow: var(--shadow); border: 1px solid #efe8d6;
+}
+.badge-icon {
+  width: 52px; height: 52px; margin: 0 auto 8px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--green-soft); color: var(--green-deep);
+}
+.badge-icon i { width: 26px; height: 26px; }
+.badge-card.locked { opacity: 0.55; filter: grayscale(0.8); }
+.badge-card.locked .badge-icon { background: #e4ddcb; color: #a8a48f; }
+.badge-card.unlocked .badge-icon {
+  background: linear-gradient(135deg, #ffe08a, var(--gold)); color: #7a5a10;
+  box-shadow: 0 4px 12px rgba(224,169,46,0.4);
+}
+.badge-title { font-size: 12px; font-weight: 800; margin-bottom: 3px; }
+.badge-desc { font-size: 10px; color: var(--muted); line-height: 1.35; }
+
+/* ===== 완료 인증 카드 ===== */
+.cert-zone { margin-top: 20px; }
+.cert-card {
+  background: linear-gradient(150deg, var(--green) 0%, var(--green-deep) 100%);
+  color: #fff; border-radius: 20px; padding: 24px 20px; text-align: center;
+  box-shadow: var(--shadow); position: relative; overflow: hidden;
+}
+.cert-card h3 { margin: 8px 0 4px; font-size: 20px; }
+.cert-card .cert-sub { font-size: 12.5px; opacity: 0.9; margin-bottom: 14px; }
+.cert-seal { font-size: 46px; }
+.cert-stats { display: flex; justify-content: center; gap: 24px; margin: 14px 0; }
+.cert-stats div span { display: block; }
+.cert-stats .num { font-size: 22px; font-weight: 800; }
+.cert-stats .lbl { font-size: 11px; opacity: 0.85; }
+.cert-date { font-size: 11px; opacity: 0.8; margin-top: 4px; }
+.cert-share {
+  margin-top: 16px; background: #fff; color: var(--green-deep);
+  border: none; border-radius: 99px; padding: 11px 22px; font-weight: 800;
+  font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+}
+.cert-locked {
+  background: var(--cream-card); border: 1.5px dashed #cdbf9c; border-radius: 20px;
+  padding: 22px; text-align: center; color: var(--muted); font-size: 13px;
+}
+.cert-locked i { width: 28px; height: 28px; margin-bottom: 8px; color: #c9bd9b; }
+
+/* ===== 플로팅 스캔 버튼 ===== */
+.scan-fab {
+  position: fixed; right: calc(50% - 240px + 18px); bottom: 84px;
+  width: 58px; height: 58px; border-radius: 50%; border: none;
+  background: linear-gradient(135deg, var(--gold), #d18e1c); color: #fff;
+  display: grid; place-items: center; cursor: pointer; z-index: 30;
+  box-shadow: 0 8px 20px rgba(209,142,28,0.45);
+}
+.scan-fab i { width: 26px; height: 26px; }
+@media (max-width: 496px) { .scan-fab { right: 18px; } }
+
+/* ===== 하단 탭 바 ===== */
+.tab-bar {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px; z-index: 25;
+  background: rgba(255,255,255,0.96); backdrop-filter: blur(8px);
+  display: flex; border-top: 1px solid #e8e0cd;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-btn {
+  flex: 1; border: none; background: none; padding: 10px 0 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.tab-btn i { width: 22px; height: 22px; }
+.tab-btn.active { color: var(--green); }
+
+/* ===== 모달 공통 ===== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(30,40,28,0.55); backdrop-filter: blur(2px);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; animation: fade 0.25s ease; }
+
+.modal-card {
+  background: var(--cream-card); border-radius: 22px; width: 100%; max-width: 380px;
+  overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: pop 0.3s cubic-bezier(.2,.9,.3,1.2);
+}
+@keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.pm-hero { height: 150px; display: grid; place-items: center; font-size: 78px; position: relative; }
+.pm-close { position: absolute; top: 12px; right: 12px; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 50%; border: none;
+  background: rgba(0,0,0,0.28); color: #fff; display: grid; place-items: center; cursor: pointer;
+}
+.icon-btn i { width: 18px; height: 18px; }
+.pm-body { padding: 18px 20px 22px; }
+.pm-name { font-size: 21px; font-weight: 800; margin: 0; }
+.pm-sci { font-style: italic; color: var(--muted); font-size: 13px; margin: 3px 0 12px; }
+.pm-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.pm-tag { font-size: 11.5px; background: var(--green-soft); color: var(--green-deep); padding: 5px 10px; border-radius: 99px; font-weight: 700; }
+.pm-desc { font-size: 13.5px; line-height: 1.6; color: #46503f; }
+.pm-found { margin-top: 14px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.pm-found i { width: 14px; height: 14px; }
+.pm-locked-note {
+  margin-top: 12px; background: #f3eede; border-radius: 12px; padding: 12px 14px;
+  font-size: 12.5px; color: #6f6a52; display: flex; gap: 8px; align-items: flex-start;
+}
+.pm-locked-note i { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ===== 수집 축하 팝업 ===== */
+.collect-card {
+  background: var(--cream-card); border-radius: 24px; width: 100%; max-width: 320px;
+  padding: 30px 24px 26px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  animation: pop 0.4s cubic-bezier(.2,.9,.3,1.3);
+}
+.collect-badge { font-size: 12px; font-weight: 800; color: var(--gold); letter-spacing: 1px; }
+.collect-emoji { font-size: 84px; margin: 10px 0; animation: bounce 0.9s ease infinite alternate; }
+@keyframes bounce { to { transform: translateY(-8px); } }
+.collect-name { font-size: 24px; font-weight: 800; margin: 4px 0; }
+.collect-sci { font-style: italic; color: var(--muted); font-size: 13px; }
+.collect-msg { font-size: 13.5px; color: #46503f; margin: 14px 0 20px; line-height: 1.5; }
+.collect-btn {
+  background: linear-gradient(135deg, var(--green), var(--green-deep)); color: #fff;
+  border: none; border-radius: 99px; padding: 13px 30px; font-weight: 800; font-size: 14px; cursor: pointer;
+  width: 100%;
+}
+.collect-already { color: var(--muted); font-size: 12px; margin-top: 10px; }
+.collect-next {
+  margin-top: 4px; margin-bottom: 4px; font-size: 12.5px; line-height: 1.5;
+  color: var(--green-deep); background: var(--green-soft);
+  border-radius: 12px; padding: 10px 12px;
+}
+.map-clear-banner {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+  background: rgba(63,157,90,0.95); color: #fff; font-weight: 800; font-size: 12.5px;
+  padding: 8px 16px; border-radius: 99px; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* ===== 스캐너 모달 ===== */
+.scanner-card {
+  background: var(--cream-card); border-radius: 22px; width: 100%; max-width: 380px;
+  padding: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+.scanner-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.scanner-head h3 { margin: 0; font-size: 16px; color: var(--green-deep); display: flex; align-items: center; gap: 6px; }
+.scanner-head h3 i { width: 18px; height: 18px; }
+.scanner-head .icon-btn { background: #e5ddc9; color: var(--ink); }
+#qr-reader { border-radius: 14px; overflow: hidden; }
+#qr-reader video { border-radius: 14px; }
+.scanner-hint { text-align: center; font-size: 12.5px; color: var(--muted); margin: 12px 0 4px; }
+
+/* ===== 토스트 ===== */
+.toast {
+  position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 99px;
+  font-size: 13px; z-index: 60; opacity: 0; transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none; max-width: 90%; text-align: center;
+}
+.toast.show { opacity: 0.95; transform: translateX(-50%) translateY(-6px); }
