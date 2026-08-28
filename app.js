@@ -342,19 +342,52 @@
       showToast("알 수 없는 식물 코드예요 🤔");
       return false;
     }
-    const already = isCollected(id);
-    if (!already) {
-      state.collected[id] = new Date().toISOString();
-      state._recentlyCollected = id;
-      const newBadges = evaluateBadges();
-      saveState();
-      renderAll();
-      showCollectPopup(p, false, newBadges);
-      fireConfetti();
-    } else {
+
+    // 이미 수집한 식물이면 안내만
+    if (isCollected(id)) {
       showCollectPopup(p, true, []);
+      return true;
     }
+
+    // 정답 판정: 지금 찾아야 할 목표(currentTarget)의 QR만 정답으로 인정
+    const target = currentTarget();
+    if (target && id !== target.id) {
+      // 오답: 목표가 아닌 식물의 QR을 찍음 -> 수집하지 않음
+      showWrongPopup(target);
+      return false;
+    }
+    // 목표가 없는데(=퀘스트 밖) 아직 수집 안 한 식물이면 오답 처리
+    if (!target && !isQuestPlant(id)) {
+      showWrongPopup(null);
+      return false;
+    }
+
+    // 정답: 수집 처리
+    state.collected[id] = new Date().toISOString();
+    state._recentlyCollected = id;
+    const newBadges = evaluateBadges();
+    saveState();
+    renderAll();
+    showCollectPopup(p, false, newBadges);
+    fireConfetti();
     return true;
+  }
+
+  // 오답 안내 팝업 (정답 이름은 노출하지 않아 맞히는 재미 유지)
+  function showWrongPopup(target) {
+    const card = $("#collect-card");
+    const tz = target ? zoneById(target.zone) : null;
+    const guide = target
+      ? `지금 찾는 식물은 여기가 아니에요.<br><strong>${tz ? tz.name : ""}</strong> 쪽의 목표 식물을 다시 찾아보세요!`
+      : `지금 목표로 배정된 식물이 아니에요. 지도에서 목표 식물을 확인해 주세요.`;
+    card.innerHTML =
+      `<div class="collect-badge wrong">앗, 다른 식물이에요</div>` +
+      `<div class="collect-emoji">❌</div>` +
+      `<div class="collect-name">틀렸어요</div>` +
+      `<div class="collect-next">${guide}</div>` +
+      `<button class="collect-btn" id="collect-ok">다시 찾아볼게요</button>`;
+    openModal("#collect-popup");
+    $("#collect-ok").addEventListener("click", () => closeModal("#collect-popup"));
   }
 
   function showCollectPopup(p, already, newBadges) {

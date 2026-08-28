@@ -363,3 +363,6 @@ html, body {
 
 /* 미수집 이름 마스킹(OOOO) */
 .pm-name-masked { letter-spacing: 3px; color: #9aa290; }
+
+/* 오답 안내 배지 */
+.collect-badge.wrong { color: #e5484d; }
