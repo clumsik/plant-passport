@@ -74,6 +74,11 @@
     return z ? z.name : '';
   }
 
+  // 이름을 글자수만큼 'O'로 가림(공백은 유지). 예: "핑크뮬리" -> "OOOO"
+  function maskName(name) {
+    return String(name || '').replace(/\S/g, 'O');
+  }
+
   function fmtDate(iso) {
     const d = new Date(iso);
     const p = (n) => String(n).padStart(2, "0");
@@ -312,8 +317,8 @@
           `<div class="pm-close"><button class="icon-btn" data-close="plant"><i data-lucide="x"></i></button></div>` +
         `</div>` +
         `<div class="pm-body">` +
-          `<h2 class="pm-name">${p.name}</h2>` +
-          (p.sci ? `<div class="pm-sci">${p.sci}</div>` : `<div class="pm-sci">아직 발견하지 못한 식물</div>`) +
+          `<h2 class="pm-name pm-name-masked">${maskName(p.name)}</h2>` +
+          `<div class="pm-sci">사진과 힌트를 보고 찾아가 보세요!</div>` +
           `<div class="pm-tags">` +
             `<span class="pm-tag">📍 ${plantLocationText(p)}</span>` +
           `</div>` +
