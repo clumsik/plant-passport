@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  const STORAGE_KEY = "sejong_plant_dex_v1";
+  const STORAGE_KEY = "sejong_plant_dex_v2";
   const QUEST_SIZE = 5; // 사용자마다 찾아야 할 식물 수
 
   // ---------- 상태(localStorage) ----------
