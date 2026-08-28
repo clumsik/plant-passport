@@ -306,13 +306,14 @@
         `</div>`;
     } else {
       body =
-        `<div class="pm-hero" style="background:#efeade">` +
-          `<span style="filter:brightness(0) opacity(0.25)">${p.emoji}</span>` +
+        `<div class="pm-hero ${p.img ? "has-photo" : ""}" style="background:${z ? z.color + "22" : "#efeade"}">` +
+          plantVisual(p, "pm-photo") +
+          `<span class="pm-find-badge">찾아가기</span>` +
           `<div class="pm-close"><button class="icon-btn" data-close="plant"><i data-lucide="x"></i></button></div>` +
         `</div>` +
         `<div class="pm-body">` +
-          `<h2 class="pm-name">？？？</h2>` +
-          `<div class="pm-sci">아직 발견하지 못한 식물</div>` +
+          `<h2 class="pm-name">${p.name}</h2>` +
+          (p.sci ? `<div class="pm-sci">${p.sci}</div>` : `<div class="pm-sci">아직 발견하지 못한 식물</div>`) +
           `<div class="pm-tags">` +
             `<span class="pm-tag">📍 ${plantLocationText(p)}</span>` +
           `</div>` +
