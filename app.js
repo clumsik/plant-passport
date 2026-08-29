@@ -154,6 +154,33 @@
   }
 
   // ---------- 지도 렌더 ----------
+  // 지도 상태: 선택된 카테고리(null=전체), 이름을 펼친 구역 id
+  let activeCat = null;
+  let openedZone = null;
+
+  function renderCategoryFilter() {
+    const wrap = $("#cat-filter");
+    if (!wrap || typeof CATEGORIES === "undefined") return;
+    wrap.innerHTML = "";
+    // '전체' 칩
+    const all = document.createElement("button");
+    all.className = "cat-chip" + (activeCat === null ? " active" : "");
+    all.innerHTML = "🗺️ 전체";
+    all.addEventListener("click", () => { activeCat = null; renderCategoryFilter(); renderMap(); });
+    wrap.appendChild(all);
+    CATEGORIES.forEach((c) => {
+      const chip = document.createElement("button");
+      chip.className = "cat-chip cat-" + c.id + (activeCat === c.id ? " active" : "");
+      chip.innerHTML = c.icon + " " + c.name;
+      chip.addEventListener("click", () => {
+        activeCat = (activeCat === c.id ? null : c.id);
+        openedZone = null;
+        renderCategoryFilter(); renderMap();
+      });
+      wrap.appendChild(chip);
+    });
+  }
+
   function renderMap() {
     const markers = $("#map-markers");
     const lines = $("#map-lines");
@@ -169,9 +196,43 @@
       probe.src = "assets/pixel-map.png";
     }
 
+    const SVGNS = "http://www.w3.org/2000/svg";
     const target = currentTarget();
     const doneQuest = questPlants().filter((p) => isCollected(p.id));
+    const questZoneIds = new Set(questPlants().map((p) => p.zone));
 
+    // ---- (방법 2) 모든 구역: 작은 점 표시. 탭하면 이름 토글. ----
+    // (방법 3) 카테고리 선택 시 해당 카테고리는 이름을 항상 표시하고 강조.
+    ZONES.forEach((z) => {
+      const inCat = activeCat && z.cat === activeCat;
+      const isQuestZone = questZoneIds.has(z.id);
+
+      const dot = document.createElement("div");
+      dot.className = "zone-dot"
+        + (inCat ? " incat" : "")
+        + (isQuestZone ? " quest" : "");
+      dot.style.left = z.x + "%";
+      dot.style.top = z.y + "%";
+      dot.title = z.name;
+      dot.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openedZone = (openedZone === z.id ? null : z.id);
+        renderMap();
+      });
+      markers.appendChild(dot);
+
+      // 이름 배지 표시 조건: 카테고리 선택됨 | 탭으로 열림
+      if (inCat || openedZone === z.id) {
+        const tag = document.createElement("div");
+        tag.className = "zone-name-tag" + (openedZone === z.id ? " opened" : "");
+        tag.style.left = z.x + "%";
+        tag.style.top = (z.y + 4) + "%";
+        tag.textContent = z.name;
+        markers.appendChild(tag);
+      }
+    });
+
+    // ---- 퀘스트 핀(목표/수집) + 연결선: 항상 위에 표시 ----
     const items = doneQuest.map((p) => ({ p: p, kind: "done" }));
     if (target) items.push({ p: target, kind: "target" });
 
@@ -185,8 +246,6 @@
       return;
     }
 
-    // 핀은 좌/우 가장자리 열에 세로로 균등 배치(겹침 불가).
-    // 앵커(실제 위치)와 핀을 SVG 선으로 연결 → viewBox 0~100이라 %좌표와 정확히 일치.
     const left = [], right = [];
     items.forEach((it) => {
       const z = zoneById(it.p.zone);
@@ -194,10 +253,8 @@
       (z.x < 50 ? left : right).push(it);
     });
 
-    const SVGNS = "http://www.w3.org/2000/svg";
     function drawLine(x1, y1, x2, y2, isTarget) {
       if (!lines) return;
-      // 앵커쪽 끝에 작은 원 + 연결선
       const ln = document.createElementNS(SVGNS, "line");
       ln.setAttribute("x1", x1); ln.setAttribute("y1", y1);
       ln.setAttribute("x2", x2); ln.setAttribute("y2", y2);
@@ -214,21 +271,20 @@
       const n = list.length;
       list.forEach((it, i) => {
         const z = zoneById(it.p.zone);
-        const py = n === 1 ? 30 : (16 + (68 * i) / (n - 1)); // 핀 세로 위치(%)
-        // 선: 핀 중심(colX,py) → 앵커(z.x,z.y)
+        const py = n === 1 ? 30 : (16 + (68 * i) / (n - 1));
         drawLine(colX, py, z.x, z.y, it.kind === "target");
         renderPin(it, colX, py);
-        renderZoneName(z, it.kind === "target");  // 실제 위치에 구역 이름 배지
+        // 퀘스트 관련 구역 이름은 항상 표시(찾아갈 곳)
+        renderZoneName(z, it.kind === "target");
       });
     }
 
-    // 실제 위치(앵커) 옆에 구역 이름 배지 표시 → 관람객이 갈 곳을 알 수 있음
     function renderZoneName(z, isTarget) {
       if (!z) return;
       const tag = document.createElement("div");
-      tag.className = "zone-name-tag" + (isTarget ? " target" : "");
+      tag.className = "zone-name-tag quest" + (isTarget ? " target" : "");
       tag.style.left = z.x + "%";
-      tag.style.top = (z.y + 4) + "%"; // 점 바로 아래
+      tag.style.top = (z.y + 4) + "%";
       tag.textContent = z.name;
       markers.appendChild(tag);
     }
@@ -249,7 +305,6 @@
       markers.appendChild(pin);
     }
 
-    // 가장자리 열(핀 버블이 잘리지 않도록 8% / 92%)
     layout(left, 12);
     layout(right, 88);
   }
@@ -630,6 +685,7 @@
   // ---------- 전체 렌더 ----------
   function renderAll() {
     updateProgress();
+    renderCategoryFilter();
     renderMap();
     renderDex();
     renderBadges();
