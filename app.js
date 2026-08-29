@@ -617,9 +617,43 @@
     $("#login-overlay").classList.add("hidden");
     ensureQuest();        // 목표 5종 확정(없으면 새로 배정 → 저장 시 서버 반영)
     saveState();          // 새 배정/이어받기 상태를 로컬+서버에 반영
+    updateCurrentCode();
     renderAll();
     refreshIcons();
     handleCollectParam();
+  }
+
+  // 헤더에 현재 입장번호 표시
+  function updateCurrentCode() {
+    const el = $("#current-code");
+    if (!el) return;
+    if (ticketCode) {
+      el.innerHTML = `<i data-lucide="ticket"></i> 입장번호 <strong>${ticketCode}</strong>`;
+      el.style.display = "flex";
+    } else {
+      el.innerHTML = "";
+      el.style.display = "none";
+    }
+    refreshIcons();
+  }
+
+  // 로그아웃(확인 후 로그인 화면으로)
+  function doLogout() {
+    const ok = window.confirm(
+      "로그아웃할까요?\n\n진행 상황은 입장번호 " + (ticketCode || "") +
+      " 로 서버에 저장되어 있어, 같은 번호로 다시 로그인하면 이어서 할 수 있어요."
+    );
+    if (!ok) return;
+    // 마지막 상태를 서버에 즉시 저장
+    upsertRemoteSession();
+    ticketCode = null;
+    try { localStorage.removeItem(LAST_CODE_KEY); } catch (e) {}
+    updateCurrentCode();
+    const input = $("#login-code");
+    if (input) input.value = "";
+    $("#login-error").textContent = "";
+    $("#login-overlay").classList.remove("hidden");
+    if (input) input.focus();
   }
 
   // ---------- 로그인 처리 ----------
@@ -675,6 +709,8 @@
   function boot() {
     initSupabase();
     setupLoginUI();
+    const lo = $("#logout-btn");
+    if (lo) lo.addEventListener("click", doLogout);
     refreshIcons(); // 로그인 화면 아이콘 렌더
   }
 
@@ -694,13 +730,8 @@
       state = emptyState(); ensureQuest(); saveState(); renderAll();
       showToast("초기화 완료! 새로운 목표 " + questTotal() + "종이 배정됐어요.");
     },
-    // 로그아웃: 로그인 화면으로 (다른 번호로 시작)
-    logout: function () {
-      ticketCode = null;
-      $("#login-overlay").classList.remove("hidden");
-      $("#login-code").value = "";
-      $("#login-code").focus();
-    },
+    // 로그아웃(확인창 포함)
+    logout: doLogout,
     // 목표 전부 수집(데모)
     collectAll: function () { ensureQuest(); state.quest.forEach((id) => { state.collected[id] = new Date().toISOString(); }); evaluateBadges(); saveState(); renderAll(); },
   };

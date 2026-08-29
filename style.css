@@ -477,3 +477,20 @@ html, body {
   border-radius: 50%; animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   헤더 로그아웃 버튼 + 현재 입장번호 표시
+   ============================================================ */
+.header-title { position: relative; }
+.logout-btn {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.18); color: #fff; border: none;
+  border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.logout-btn i { width: 17px; height: 17px; }
+.current-code {
+  margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.9);
+  display: flex; align-items: center; gap: 5px;
+}
+.current-code strong { font-weight: 800; letter-spacing: 1px; }
