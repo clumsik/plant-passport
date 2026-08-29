@@ -8,7 +8,20 @@
   const QUEST_SIZE = 5; // 사용자마다 찾아야 할 식물 수
 
   // 현재 로그인한 입장 코드
-  let ticketCode = null;
+  let ticketCode = null;   // DB 저장/조회 키(해시값)
+  let displayName = "";    // 헤더 표시용 이름(서버에 저장 안 함)
+
+  // 로그인 입력값을 SHA-256 해시로 변환 → 원본 개인정보를 서버에 저장하지 않음
+  async function hashKey(raw) {
+    try {
+      const enc = new TextEncoder().encode(raw);
+      const buf = await crypto.subtle.digest("SHA-256", enc);
+      return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch (e) {
+      // 구형 브라우저 등 예외 시: 최소한의 폴백(원본 대신 인코딩)
+      return "raw_" + encodeURIComponent(raw);
+    }
+  }
   function storageKey() { return STORAGE_PREFIX + (ticketCode || "guest"); }
 
   // ---------- Supabase 클라이언트 ----------
@@ -840,7 +853,7 @@
     const el = $("#current-code");
     if (!el) return;
     if (ticketCode) {
-      const nm = (ticketCode.split("_")[0]) || "";
+      const nm = displayName || "탐험가";
       el.innerHTML = `<i data-lucide="user"></i> <strong>${nm}</strong>님`;
       el.style.display = "flex";
     } else {
@@ -871,11 +884,14 @@
     // 마지막 상태를 서버에 즉시 저장
     upsertRemoteSession();
     ticketCode = null;
+    displayName = "";
     try { localStorage.removeItem(LAST_CODE_KEY); } catch (e) {}
     updateCurrentCode();
     const nameInput = $("#login-name");
     const birthInput = $("#login-birth");
+    const phoneInput = $("#login-phone");
     if (birthInput) birthInput.value = "";
+    if (phoneInput) phoneInput.value = "";
     $("#login-error").textContent = "";
     $("#login-overlay").classList.remove("hidden");
     if (nameInput) nameInput.focus();
@@ -905,11 +921,13 @@
     }
     btn.classList.add("loading"); btn.disabled = true;
 
-    // 세션 키: "이름_생년월일_폰4자리" (Supabase ticket_code로 사용)
-    ticketCode = name + "_" + birth + "_" + phone;
+    // 원본 식별자(이름_생년월일_폰4자리)를 해시 → 서버엔 해시값만 저장(개인정보 미저장)
+    const rawKey = name + "_" + birth + "_" + phone;
+    ticketCode = await hashKey(rawKey);
+    displayName = name;
     try {
       localStorage.setItem(LAST_CODE_KEY, ticketCode);
-      localStorage.setItem(LAST_NAME_KEY, name);
+      localStorage.setItem(LAST_NAME_KEY, name);   // 이름은 이 기기 편의용으로만 로컬 저장
     } catch (e) {}
 
     // 1) 로컬 캐시 먼저 로드(오프라인 대비)
@@ -954,7 +972,7 @@
     // 지난번 이름을 미리 채워줌(편의). 생년월일/휴대폰은 보안상 비워둠.
     try {
       const lastName = localStorage.getItem(LAST_NAME_KEY);
-      if (lastName) nameInput.value = lastName;
+      if (lastName) { nameInput.value = lastName; displayName = lastName; }
     } catch (e) {}
   }
 
