@@ -236,7 +236,8 @@
   function renderDex() {
     const grid = $("#dex-grid");
     grid.innerHTML = "";
-    questPlants().forEach((p, idx) => {
+    // 도감은 등록된 전체 식물을 표시(수집한 것만 컬러 활성화)
+    PLANTS.forEach((p, idx) => {
       const done = isCollected(p.id);
       const card = document.createElement("div");
       card.className = "dex-card " + (done ? "unlocked" : "locked");
