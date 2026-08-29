@@ -218,7 +218,19 @@
         // 선: 핀 중심(colX,py) → 앵커(z.x,z.y)
         drawLine(colX, py, z.x, z.y, it.kind === "target");
         renderPin(it, colX, py);
+        renderZoneName(z, it.kind === "target");  // 실제 위치에 구역 이름 배지
       });
+    }
+
+    // 실제 위치(앵커) 옆에 구역 이름 배지 표시 → 관람객이 갈 곳을 알 수 있음
+    function renderZoneName(z, isTarget) {
+      if (!z) return;
+      const tag = document.createElement("div");
+      tag.className = "zone-name-tag" + (isTarget ? " target" : "");
+      tag.style.left = z.x + "%";
+      tag.style.top = (z.y + 4) + "%"; // 점 바로 아래
+      tag.textContent = z.name;
+      markers.appendChild(tag);
     }
 
     function renderPin(it, px, py) {
