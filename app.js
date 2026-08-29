@@ -154,9 +154,10 @@
   }
 
   // ---------- 지도 렌더 ----------
-  // 지도 상태: 선택된 카테고리(null=전체), 이름을 펼친 구역 id
+  // 지도 상태: 선택된 카테고리(null=전체), 잠깐 강조/이름표시 중인 구역 id
   let activeCat = null;
-  let openedZone = null;
+  let focusedZone = null;
+  let focusTimer = null;
 
   function renderCategoryFilter() {
     const wrap = $("#cat-filter");
@@ -166,7 +167,7 @@
     const all = document.createElement("button");
     all.className = "cat-chip" + (activeCat === null ? " active" : "");
     all.innerHTML = "🗺️ 전체";
-    all.addEventListener("click", () => { activeCat = null; renderCategoryFilter(); renderMap(); });
+    all.addEventListener("click", () => { activeCat = null; focusedZone = null; renderCategoryFilter(); renderCatList(); renderMap(); });
     wrap.appendChild(all);
     CATEGORIES.forEach((c) => {
       const chip = document.createElement("button");
@@ -174,11 +175,43 @@
       chip.innerHTML = c.icon + " " + c.name;
       chip.addEventListener("click", () => {
         activeCat = (activeCat === c.id ? null : c.id);
-        openedZone = null;
-        renderCategoryFilter(); renderMap();
+        focusedZone = null;
+        renderCategoryFilter(); renderCatList(); renderMap();
       });
       wrap.appendChild(chip);
     });
+  }
+
+  function renderCatList() {
+    const box = $("#cat-list");
+    if (!box) return;
+    box.innerHTML = "";
+    if (!activeCat) { box.style.display = "none"; return; }
+    box.style.display = "block";
+    const cat = (typeof CATEGORIES !== "undefined") ? CATEGORIES.find((c) => c.id === activeCat) : null;
+    const zonesInCat = ZONES.filter((z) => z.cat === activeCat);
+    const head = document.createElement("div");
+    head.className = "cat-list-head";
+    head.innerHTML = (cat ? cat.icon + " " + cat.name : "") + " <span>" + zonesInCat.length + "곳</span> · 이름을 누르면 지도에서 위치를 알려줘요";
+    box.appendChild(head);
+    const grid = document.createElement("div");
+    grid.className = "cat-list-grid";
+    zonesInCat.forEach((z) => {
+      const item = document.createElement("button");
+      item.className = "cat-list-item" + (focusedZone === z.id ? " active" : "");
+      item.textContent = z.name;
+      item.addEventListener("click", () => focusZone(z.id));
+      grid.appendChild(item);
+    });
+    box.appendChild(grid);
+  }
+
+  function focusZone(zid) {
+    focusedZone = zid;
+    clearTimeout(focusTimer);
+    focusTimer = setTimeout(() => { focusedZone = null; renderMap(); renderCatList(); }, 3200);
+    renderMap();
+    renderCatList();
   }
 
   function renderMap() {
@@ -201,30 +234,28 @@
     const doneQuest = questPlants().filter((p) => isCollected(p.id));
     const questZoneIds = new Set(questPlants().map((p) => p.zone));
 
-    // ---- (방법 2) 모든 구역: 작은 점 표시. 탭하면 이름 토글. ----
-    // (방법 3) 카테고리 선택 시 해당 카테고리는 이름을 항상 표시하고 강조.
+    // 모든 구역: 점만 표시(이름 없음 -> 겹침 원천 차단).
+    // 선택 카테고리 점은 강조. 점 탭 or 목록 탭 시 이름 하나만 잠깐 표시.
     ZONES.forEach((z) => {
       const inCat = activeCat && z.cat === activeCat;
       const isQuestZone = questZoneIds.has(z.id);
-
+      const isFocused = focusedZone === z.id;
       const dot = document.createElement("div");
       dot.className = "zone-dot"
         + (inCat ? " incat" : "")
-        + (isQuestZone ? " quest" : "");
+        + (isQuestZone ? " quest" : "")
+        + (isFocused ? " focused" : "");
       dot.style.left = z.x + "%";
       dot.style.top = z.y + "%";
       dot.title = z.name;
       dot.addEventListener("click", (e) => {
         e.stopPropagation();
-        openedZone = (openedZone === z.id ? null : z.id);
-        renderMap();
+        focusZone(z.id);
       });
       markers.appendChild(dot);
-
-      // 이름 배지 표시 조건: 카테고리 선택됨 | 탭으로 열림
-      if (inCat || openedZone === z.id) {
+      if (isFocused) {
         const tag = document.createElement("div");
-        tag.className = "zone-name-tag" + (openedZone === z.id ? " opened" : "");
+        tag.className = "zone-name-tag opened";
         tag.style.left = z.x + "%";
         tag.style.top = (z.y + 4) + "%";
         tag.textContent = z.name;
@@ -686,6 +717,7 @@
   function renderAll() {
     updateProgress();
     renderCategoryFilter();
+    renderCatList();
     renderMap();
     renderDex();
     renderBadges();
