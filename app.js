@@ -156,7 +156,9 @@
   // ---------- 지도 렌더 ----------
   function renderMap() {
     const markers = $("#map-markers");
+    const lines = $("#map-lines");
     markers.innerHTML = "";
+    if (lines) lines.innerHTML = "";
 
     // 지도 이미지 로드 실패 시 대체 배경 적용
     const mapBg = $("#map-bg");
@@ -170,7 +172,6 @@
     const target = currentTarget();
     const doneQuest = questPlants().filter((p) => isCollected(p.id));
 
-    // 표시 대상: 완료한 퀘스트 식물들 + 현재 목표 1개
     const items = doneQuest.map((p) => ({ p: p, kind: "done" }));
     if (target) items.push({ p: target, kind: "target" });
 
@@ -184,9 +185,8 @@
       return;
     }
 
-    // 핀은 절대 겹치지 않도록 좌/우 가장자리에 세로로 균등 배치.
-    // 각 핀 → 실제 위치(앵커)까지 선으로 연결.
-    // 앵커가 지도 왼쪽(x<50)이면 핀을 왼쪽 열, 오른쪽이면 오른쪽 열에 둠.
+    // 핀은 좌/우 가장자리 열에 세로로 균등 배치(겹침 불가).
+    // 앵커(실제 위치)와 핀을 SVG 선으로 연결 → viewBox 0~100이라 %좌표와 정확히 일치.
     const left = [], right = [];
     items.forEach((it) => {
       const z = zoneById(it.p.zone);
@@ -194,39 +194,36 @@
       (z.x < 50 ? left : right).push(it);
     });
 
-    // 한 열에서 세로 위치를 균등 분배 (프레임 상단 14% ~ 하단 86%)
+    const SVGNS = "http://www.w3.org/2000/svg";
+    function drawLine(x1, y1, x2, y2, isTarget) {
+      if (!lines) return;
+      // 앵커쪽 끝에 작은 원 + 연결선
+      const ln = document.createElementNS(SVGNS, "line");
+      ln.setAttribute("x1", x1); ln.setAttribute("y1", y1);
+      ln.setAttribute("x2", x2); ln.setAttribute("y2", y2);
+      ln.setAttribute("class", "leader" + (isTarget ? " target" : ""));
+      lines.appendChild(ln);
+      const dot = document.createElementNS(SVGNS, "circle");
+      dot.setAttribute("cx", x2); dot.setAttribute("cy", y2);
+      dot.setAttribute("r", isTarget ? 2.2 : 1.8);
+      dot.setAttribute("class", "leader-dot" + (isTarget ? " target" : ""));
+      lines.appendChild(dot);
+    }
+
     function layout(list, colX) {
       const n = list.length;
       list.forEach((it, i) => {
         const z = zoneById(it.p.zone);
-        const py = n === 1 ? 26 : (14 + (72 * i) / (n - 1)); // 핀 세로 위치(%)
-        renderPin(it, z.x, z.y, colX, py, colX < 50 ? "left" : "right");
+        const py = n === 1 ? 30 : (16 + (68 * i) / (n - 1)); // 핀 세로 위치(%)
+        // 선: 핀 중심(colX,py) → 앵커(z.x,z.y)
+        drawLine(colX, py, z.x, z.y, it.kind === "target");
+        renderPin(it, colX, py);
       });
     }
 
-    function renderPin(it, ax, ay, px, py, side) {
-      // 1) 연결선(핀 → 앵커)
-      const line = document.createElement("div");
-      line.className = "map-link";
-      const dx = ax - px, dy = ay - py;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      const ang = Math.atan2(dy, dx) * 180 / Math.PI;
-      line.style.left = px + "%";
-      line.style.top = py + "%";
-      line.style.width = len + "%";
-      line.style.transform = "rotate(" + ang + "deg)";
-      markers.appendChild(line);
-
-      // 2) 앵커(실제 위치 점)
-      const anchor = document.createElement("div");
-      anchor.className = "map-anchor" + (it.kind === "target" ? " target" : "");
-      anchor.style.left = ax + "%";
-      anchor.style.top = ay + "%";
-      markers.appendChild(anchor);
-
-      // 3) 핀(사진/? + 라벨)
+    function renderPin(it, px, py) {
       const pin = document.createElement("div");
-      pin.className = "map-pin " + it.kind + " side-" + side;
+      pin.className = "map-pin " + it.kind;
       pin.style.left = px + "%";
       pin.style.top = py + "%";
       const label = it.kind === "target" ? "여기서 찾기" : it.p.name;
@@ -240,9 +237,9 @@
       markers.appendChild(pin);
     }
 
-    // 왼쪽 열 x=13%, 오른쪽 열 x=87%
-    layout(left, 13);
-    layout(right, 87);
+    // 가장자리 열(핀 버블이 잘리지 않도록 8% / 92%)
+    layout(left, 12);
+    layout(right, 88);
   }
 
   // ---------- 도감 렌더 ----------

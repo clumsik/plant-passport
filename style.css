@@ -812,3 +812,29 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 /* 핀 버블 살짝 축소(가장자리 공간 확보) */
 .pin-bubble { width: 42px; height: 42px; }
 .pin-label { max-width: 40vw; overflow: hidden; text-overflow: ellipsis; }
+
+/* ============================================================
+   지도 SVG 연결선 방식 (핀-선 정확 일치) — 최종
+   ============================================================ */
+.map-lines {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  z-index: 2; pointer-events: none; overflow: visible;
+}
+.map-lines .leader {
+  stroke: #3B2010; stroke-width: 0.7; stroke-dasharray: 2 1.4; opacity: 0.85;
+}
+.map-lines .leader.target { stroke: #e5484d; stroke-width: 0.9; opacity: 1; }
+.map-lines .leader-dot { fill: var(--gold); stroke: #3B2010; stroke-width: 0.5; }
+.map-lines .leader-dot.target { fill: #e5484d; stroke: #fff; stroke-width: 0.6; }
+
+/* 핀은 항상 중심 정렬(좌표=버블 중심) → SVG 선 끝과 정확히 일치 */
+.map-pin { transform: translate(-50%, -50%) !important; align-items: center !important; }
+.map-pin .pin-label { align-self: center !important; }
+
+/* 옛 div 연결선 방식 제거 */
+.map-link { display: none !important; }
+.map-anchor { display: none !important; }
+
+/* 가장자리 핀 버블/라벨 크기 최종 조정 */
+.pin-bubble { width: 40px; height: 40px; }
+.map-pin .pin-label { max-width: 84px; white-space: normal; text-align: center; line-height: 1.2; }
