@@ -373,62 +373,62 @@ html, body {
    가시성 향상 (노년층 접근성) — 폰트/버튼/탭 확대
    ============================================================ */
 /* 헤더 */
-.header-text h1 { font-size: 19px; white-space: nowrap; letter-spacing: -0.6px; }
-.header-text p  { font-size: 15px; opacity: 0.9; }
+.header-text h1 { font-size: clamp(17px, 4.9vw, 21px); white-space: nowrap; letter-spacing: -0.6px; }
+.header-text p  { font-size: clamp(13px, 3.9vw, 16px); opacity: 0.9; }
 .logo-mark { width: 46px; height: 46px; }
 .logo-mark i { width: 26px; height: 26px; }
 
 /* 진행도 */
-.progress-label { font-size: 15px; }
+.progress-label { font-size: clamp(13px, 3.9vw, 16px); }
 .progress-bar { height: 14px; }
 
 /* 섹션 제목/설명 */
-.section-head h2 { font-size: 21px; }
+.section-head h2 { font-size: clamp(19px, 5.4vw, 23px); }
 .section-head h2 i { width: 22px; height: 22px; }
-.section-head p  { font-size: 15px; }
+.section-head p  { font-size: clamp(13px, 3.9vw, 16px); }
 
 /* 지도 범례 / 구역 라벨 */
-.legend { font-size: 15px; gap: 22px; }
+.legend { font-size: clamp(13px, 3.9vw, 16px); gap: 22px; }
 .legend .dot { width: 14px; height: 14px; }
-.zone-label { font-size: 13px; padding: 3px 9px; }
+.zone-label { font-size: clamp(11px, 3.3vw, 14px); padding: 3px 9px; }
 
 /* 도감 카드 */
-.dex-name { font-size: 15px; }
-.dex-num  { font-size: 11px; }
+.dex-name { font-size: clamp(13px, 3.9vw, 16px); }
+.dex-num  { font-size: clamp(10px, 2.8vw, 12px); }
 
 /* 뱃지 카드 */
-.badge-title { font-size: 15px; }
-.badge-desc  { font-size: 12.5px; line-height: 1.4; }
+.badge-title { font-size: clamp(13px, 3.9vw, 16px); }
+.badge-desc  { font-size: clamp(11px, 3.2vw, 13px); line-height: 1.4; }
 .badge-icon { width: 60px; height: 60px; }
 .badge-icon i { width: 30px; height: 30px; }
 
 /* 하단 탭 바 (핵심 내비게이션) */
-.tab-btn { font-size: 14px; padding: 12px 0 14px; }
+.tab-btn { font-size: clamp(12px, 3.6vw, 15px); padding: 12px 0 14px; }
 .tab-btn i { width: 27px; height: 27px; }
 
 /* 식물 상세 모달 */
-.pm-name { font-size: 24px; }
-.pm-sci  { font-size: 15px; }
-.pm-tag  { font-size: 14px; padding: 6px 12px; }
-.pm-desc { font-size: 16px; line-height: 1.65; }
-.pm-locked-note { font-size: 15px; }
+.pm-name { font-size: clamp(21px, 6.2vw, 26px); }
+.pm-sci  { font-size: clamp(13px, 3.9vw, 16px); }
+.pm-tag  { font-size: clamp(12px, 3.6vw, 15px); padding: 6px 12px; }
+.pm-desc { font-size: clamp(14px, 4.1vw, 17px); line-height: 1.65; }
+.pm-locked-note { font-size: clamp(13px, 3.9vw, 16px); }
 .pm-locked-note i { width: 20px; height: 20px; }
-.pm-found { font-size: 14px; }
+.pm-found { font-size: clamp(12px, 3.6vw, 15px); }
 
 /* 수집/오답 팝업 */
-.collect-badge { font-size: 14px; }
-.collect-name  { font-size: 26px; }
-.collect-sci   { font-size: 15px; }
-.collect-msg   { font-size: 16px; line-height: 1.6; }
-.collect-next  { font-size: 15px; line-height: 1.6; }
-.collect-btn   { font-size: 17px; padding: 15px 30px; }
+.collect-badge { font-size: clamp(12px, 3.6vw, 15px); }
+.collect-name  { font-size: clamp(22px, 6.7vw, 28px); }
+.collect-sci   { font-size: clamp(13px, 3.9vw, 16px); }
+.collect-msg   { font-size: clamp(14px, 4.1vw, 17px); line-height: 1.6; }
+.collect-next  { font-size: clamp(13px, 3.9vw, 16px); line-height: 1.6; }
+.collect-btn   { font-size: clamp(15px, 4.4vw, 18px); padding: 15px 30px; }
 
 /* 지도 목표 완료 배너 */
-.map-clear-banner { font-size: 15px; padding: 10px 20px; }
+.map-clear-banner { font-size: clamp(13px, 3.9vw, 16px); padding: 10px 20px; }
 
 /* QR 스캐너 모달 */
-.scanner-head h3 { font-size: 19px; }
-.scanner-hint { font-size: 15px; }
+.scanner-head h3 { font-size: clamp(17px, 4.9vw, 20px); }
+.scanner-hint { font-size: clamp(13px, 3.9vw, 16px); }
 
 /* ============================================================
    입장 코드 로그인 화면
