@@ -881,14 +881,15 @@
     if (nameInput) nameInput.focus();
   }
 
-  // ---------- 로그인 처리 (이름 + 생년월일 6자리) ----------
-  async function doLogin(name, birth) {
+  // ---------- 로그인 처리 (이름 + 생년월일 6자리 + 휴대폰 뒤 4자리) ----------
+  async function doLogin(name, birth, phone) {
     const btn = $("#login-start");
     const errEl = $("#login-error");
     errEl.textContent = "";
 
     name = (name || "").trim();
     birth = (birth || "").trim();
+    phone = (phone || "").trim();
 
     if (name.length < 1) {
       errEl.textContent = "이름을 입력해 주세요.";
@@ -898,10 +899,14 @@
       errEl.textContent = "생년월일 6자리를 정확히 입력해 주세요. (예: 940721)";
       return;
     }
+    if (!/^\d{4}$/.test(phone)) {
+      errEl.textContent = "휴대폰 뒤 4자리를 정확히 입력해 주세요. (예: 5678)";
+      return;
+    }
     btn.classList.add("loading"); btn.disabled = true;
 
-    // 세션 키: "이름_생년월일" (Supabase ticket_code로 사용)
-    ticketCode = name + "_" + birth;
+    // 세션 키: "이름_생년월일_폰4자리" (Supabase ticket_code로 사용)
+    ticketCode = name + "_" + birth + "_" + phone;
     try {
       localStorage.setItem(LAST_CODE_KEY, ticketCode);
       localStorage.setItem(LAST_NAME_KEY, name);
@@ -924,22 +929,29 @@
   function setupLoginUI() {
     const nameInput = $("#login-name");
     const birthInput = $("#login-birth");
+    const phoneInput = $("#login-phone");
     const btn = $("#login-start");
 
-    const submit = () => doLogin(nameInput.value, birthInput.value);
+    const submit = () => doLogin(nameInput.value, birthInput.value, phoneInput.value);
 
     // 생년월일: 숫자만 6자리
     birthInput.addEventListener("input", () => {
       birthInput.value = birthInput.value.replace(/\D/g, "").slice(0, 6);
       $("#login-error").textContent = "";
     });
+    // 휴대폰 뒤 4자리: 숫자만 4자리
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 4);
+      $("#login-error").textContent = "";
+    });
     nameInput.addEventListener("input", () => { $("#login-error").textContent = ""; });
 
     nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") birthInput.focus(); });
-    birthInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+    birthInput.addEventListener("keydown", (e) => { if (e.key === "Enter") phoneInput.focus(); });
+    phoneInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
     btn.addEventListener("click", submit);
 
-    // 지난번 이름을 미리 채워줌(편의). 생년월일은 보안상 비워둠.
+    // 지난번 이름을 미리 채워줌(편의). 생년월일/휴대폰은 보안상 비워둠.
     try {
       const lastName = localStorage.getItem(LAST_NAME_KEY);
       if (lastName) nameInput.value = lastName;

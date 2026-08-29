@@ -1030,5 +1030,5 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
   font-size: 20px; letter-spacing: normal; font-weight: 700;
   font-family: var(--font-body);
 }
-#login-birth { letter-spacing: 4px; font-size: 22px; font-family: var(--font-body); }
-#login-birth::placeholder { letter-spacing: normal; font-size: 15px; font-weight: 600; }
+#login-birth, #login-phone { letter-spacing: 4px; font-size: 22px; font-family: var(--font-body); }
+#login-birth::placeholder, #login-phone::placeholder { letter-spacing: normal; font-size: 15px; font-weight: 600; }
