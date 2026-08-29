@@ -854,7 +854,19 @@
       el.innerHTML = "";
       el.style.display = "none";
     }
+    updateTodayDate();
     refreshIcons();
+  }
+
+  // 오늘 날짜(요일 포함) 표시: "2026년 08월 29일 (토)"
+  function updateTodayDate() {
+    const el = $("#today-date");
+    if (!el) return;
+    const d = new Date();
+    const days = ["일", "월", "화", "수", "목", "금", "토"];
+    const p2 = (n) => String(n).padStart(2, "0");
+    const text = d.getFullYear() + "년 " + p2(d.getMonth() + 1) + "월 " + p2(d.getDate()) + "일 (" + days[d.getDay()] + ")";
+    el.innerHTML = '<i data-lucide="calendar-days"></i> ' + text;
   }
 
   // 로그아웃(확인 후 로그인 화면으로)
