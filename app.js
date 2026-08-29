@@ -349,9 +349,7 @@
       probe.src = "assets/pixel-map.png";
     }
 
-    const SVGNS = "http://www.w3.org/2000/svg";
     const target = currentTarget();
-    const doneQuest = questPlants().filter((p) => isCollected(p.id));
     const questZoneIds = new Set(questPlants().map((p) => p.zone));
 
     // 모든 구역: 점만 표시(이름 없음 -> 겹침 원천 차단).
@@ -383,11 +381,8 @@
       }
     });
 
-    // ---- 퀘스트 핀(목표/수집) + 연결선: 항상 위에 표시 ----
-    const items = doneQuest.map((p) => ({ p: p, kind: "done" }));
-    if (target) items.push({ p: target, kind: "target" });
-
-    if (items.length === 0) {
+    // ---- 현재 목표 1개만 실제 위치에 표시(선 없음). 완료는 지도에 표시하지 않음. ----
+    if (!target) {
       if (questTotal() > 0) {
         const banner = document.createElement("div");
         banner.className = "map-clear-banner";
@@ -397,56 +392,18 @@
       return;
     }
 
-    const left = [], right = [];
-    items.forEach((it) => {
-      const z = zoneById(it.p.zone);
-      if (!z) return;
-      (z.x < 50 ? left : right).push(it);
-    });
-
-    function drawLine(x1, y1, x2, y2, isTarget) {
-      if (!lines) return;
-      const ln = document.createElementNS(SVGNS, "line");
-      ln.setAttribute("x1", x1); ln.setAttribute("y1", y1);
-      ln.setAttribute("x2", x2); ln.setAttribute("y2", y2);
-      ln.setAttribute("class", "leader" + (isTarget ? " target" : ""));
-      lines.appendChild(ln);
-      const dot = document.createElementNS(SVGNS, "circle");
-      dot.setAttribute("cx", x2); dot.setAttribute("cy", y2);
-      dot.setAttribute("r", isTarget ? 2.2 : 1.8);
-      dot.setAttribute("class", "leader-dot" + (isTarget ? " target" : ""));
-      lines.appendChild(dot);
-    }
-
-    function layout(list, colX) {
-      const n = list.length;
-      list.forEach((it, i) => {
-        const z = zoneById(it.p.zone);
-        const py = n === 1 ? 30 : (16 + (68 * i) / (n - 1));
-        drawLine(colX, py, z.x, z.y, it.kind === "target");
-        renderPin(it, colX, py);
-      });
-    }
-
-
-    function renderPin(it, px, py) {
+    const tz = zoneById(target.zone);
+    if (tz) {
       const pin = document.createElement("div");
-      pin.className = "map-pin " + it.kind;
-      pin.style.left = px + "%";
-      pin.style.top = py + "%";
-      const label = it.kind === "target" ? "여기서 찾기" : it.p.name;
-      const labelClass = it.kind === "target" ? "pin-label highlight" : "pin-label";
-      const visual = it.kind === "target" ? "?" : plantVisual(it.p, "marker-photo");
-      const bubbleClass = "pin-bubble " + it.kind + (it.kind === "target" ? " pulse" : "") + (it.p.img && it.kind === "done" ? " has-photo" : "");
+      pin.className = "map-pin target";
+      pin.style.left = tz.x + "%";
+      pin.style.top = tz.y + "%";
       pin.innerHTML =
-        '<div class="' + bubbleClass + '">' + visual + '</div>' +
-        '<div class="' + labelClass + '">' + label + '</div>';
-      pin.addEventListener("click", () => openPlantModal(it.p.id, "map"));
+        '<div class="pin-bubble target pulse">?</div>' +
+        '<div class="pin-label highlight">여기서 찾기</div>';
+      pin.addEventListener("click", () => openPlantModal(target.id, "map"));
       markers.appendChild(pin);
     }
-
-    layout(left, 12);
-    layout(right, 88);
   }
 
   // ---------- 도감 렌더 ----------
