@@ -930,91 +930,11 @@
 
   // ---------- 부트스트랩 ----------
   function boot() {
-    // 좌표 보정 모드: URL에 ?edit=1 이면 로그인 건너뛰고 보정 도구 실행(개발용)
-    if (new URLSearchParams(location.search).get("edit") === "1") {
-      startEditMode();
-      return;
-    }
     initSupabase();
     setupLoginUI();
     const lo = $("#logout-btn");
     if (lo) lo.addEventListener("click", doLogout);
     refreshIcons(); // 로그인 화면 아이콘 렌더
-  }
-
-  // ===== 좌표 보정 모드(개발용): 구역 선택 후 지도 클릭 → 좌표 수집 =====
-  function startEditMode() {
-    const ov = $("#login-overlay"); if (ov) ov.classList.add("hidden");
-    activeCat = "all";
-
-    const coords = {};
-    ZONES.forEach((z) => { coords[z.id] = { x: z.x, y: z.y }; });
-
-    const panel = document.createElement("div");
-    panel.id = "edit-panel";
-    panel.innerHTML =
-      '<div class="edit-row"><b>🛠 좌표 보정 모드</b> — 구역을 고르고 지도에서 실제 위치를 클릭하세요.</div>' +
-      '<div class="edit-row"><select id="edit-select"></select> <span id="edit-current"></span></div>' +
-      '<div class="edit-row"><button id="edit-copy">📋 전체 좌표 복사</button></div>';
-    const mapView = document.querySelector("#view-map");
-    if (mapView) mapView.appendChild(panel);
-
-    const sel = document.getElementById("edit-select");
-    ZONES.forEach((z) => {
-      const o = document.createElement("option");
-      o.value = z.id; o.textContent = z.name; sel.appendChild(o);
-    });
-
-    const frame = document.getElementById("map-frame");
-    const layer = document.createElement("div");
-    layer.style.cssText = "position:absolute;inset:0;z-index:20;pointer-events:none;";
-    frame.appendChild(layer);
-
-    function drawDots() {
-      layer.innerHTML = "";
-      ZONES.forEach((z) => {
-        const c = coords[z.id];
-        const isSel = z.id === sel.value;
-        const d = document.createElement("div");
-        d.textContent = isSel ? "◎" : "•";
-        d.style.cssText = "position:absolute;transform:translate(-50%,-50%);left:" +
-          c.x + "%;top:" + c.y + "%;text-shadow:0 0 3px #fff,0 0 3px #fff;color:" +
-          (isSel ? "#2B6CB0" : "#e5484d") + ";font-size:" + (isSel ? "28px" : "16px") + ";font-weight:800;";
-        layer.appendChild(d);
-      });
-    }
-    drawDots();
-
-    frame.addEventListener("click", (e) => {
-      const r = frame.getBoundingClientRect();
-      const x = Math.round(((e.clientX - r.left) / r.width) * 1000) / 10;
-      const y = Math.round(((e.clientY - r.top) / r.height) * 1000) / 10;
-      const id = sel.value;
-      coords[id] = { x: x, y: y };
-      const cur = document.getElementById("edit-current");
-      if (cur) cur.textContent = "→ x:" + x + " y:" + y;
-      if (sel.selectedIndex < sel.options.length - 1) sel.selectedIndex++;
-      drawDots();
-    });
-    sel.addEventListener("change", drawDots);
-
-    document.getElementById("edit-copy").addEventListener("click", () => {
-      const text = ZONES.map((z) => {
-        const c = coords[z.id];
-        return '{ id: "' + z.id + '", x: ' + c.x + ', y: ' + c.y + ' }';
-      }).join(",\n");
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(
-          function () { alert("좌표 복사 완료! 채팅에 붙여넣어 주세요."); },
-          function () { window.prompt("아래 좌표를 복사하세요:", text); }
-        );
-      } else {
-        window.prompt("아래 좌표를 복사하세요:", text);
-      }
-    });
-
-    renderAll();
-    refreshIcons();
   }
 
   if (document.readyState === "loading") {
