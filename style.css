@@ -708,3 +708,86 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
   border-radius: 8px; border: 3px solid var(--gold);
   color: var(--forest-deep); box-shadow: 0 3px 0 var(--wood-dark);
 }
+
+/* ============================================================
+   레이아웃 보정 (개편 후속) — 헤더 로그아웃 삐짐 방지
+   ============================================================ */
+.header-title { align-items: flex-start; gap: 10px; }
+.header-text { min-width: 0; flex: 1; }          /* 제목이 남은 폭에서 줄어들도록 */
+.header-text h1 {
+  white-space: normal;                            /* 넘치면 줄바꿈 허용(삐짐 방지 우선) */
+  overflow-wrap: break-word; word-break: keep-all;
+  line-height: 1.2;
+}
+.logout-btn {
+  flex-shrink: 0;                                 /* 버튼은 안 줄어듦/안 밀림 */
+  align-self: flex-start;
+  padding: 7px 11px; font-size: clamp(11px, 3.2vw, 13px);
+  gap: 4px; max-width: 40vw;
+}
+.logout-btn span { white-space: nowrap; }
+.logout-btn i { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ============================================================
+   지도 핀 겹침 방지 (앵커 + 연결선 + 밀어낸 핀)
+   ============================================================ */
+/* 앵커: 실제 위치 점 */
+.map-anchor {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--gold); border: 2px solid var(--wood-dark);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
+  z-index: 3;
+}
+.map-anchor.target {
+  background: #e5484d;
+  animation: anchorPulse 1.4s infinite;
+}
+@keyframes anchorPulse {
+  0% { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 0 rgba(229,72,77,0.5); }
+  70% { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 10px rgba(229,72,77,0); }
+  100% { box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 0 rgba(229,72,77,0); }
+}
+
+/* 연결선: 앵커 → 핀 */
+.map-link {
+  position: absolute; height: 3px; transform-origin: 0 50%;
+  background: repeating-linear-gradient(90deg, var(--wood-dark) 0 4px, transparent 4px 7px);
+  z-index: 2; pointer-events: none;
+}
+
+/* 핀(사진/?) + 라벨 묶음 */
+.map-pin {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  cursor: pointer; z-index: 4;
+}
+.pin-bubble {
+  width: 46px; height: 46px; border-radius: 8px;
+  border: 3px solid var(--wood-dark);
+  background: var(--cream-card);
+  display: grid; place-items: center; overflow: hidden;
+  box-shadow: 0 3px 0 var(--wood-dark);
+  font-size: 22px; font-weight: 800;
+}
+.pin-bubble .marker-photo { width: 100%; height: 100%; border-radius: 4px; }
+.pin-bubble.target {
+  background: var(--gold); color: var(--wood-dark);
+  border-color: #e5484d;
+}
+.pin-bubble.pulse { animation: pinPulse 1.4s infinite; }
+@keyframes pinPulse {
+  0% { box-shadow: 0 3px 0 var(--wood-dark), 0 0 0 0 rgba(247,183,49,0.6); }
+  70% { box-shadow: 0 3px 0 var(--wood-dark), 0 0 0 12px rgba(247,183,49,0); }
+  100% { box-shadow: 0 3px 0 var(--wood-dark), 0 0 0 0 rgba(247,183,49,0); }
+}
+.pin-label {
+  font-family: var(--font-pixel);
+  font-size: clamp(9px, 2.7vw, 11px); font-weight: 700;
+  white-space: nowrap; padding: 2px 7px; border-radius: 4px;
+  background: rgba(254, 249, 235, 0.96); color: var(--wood-dark);
+  border: 1.5px solid #6B3E1E; box-shadow: 0 2px 3px rgba(0,0,0,0.25);
+}
+.pin-label.highlight {
+  background: var(--forest-deep); color: #fff; border: 2px solid var(--gold);
+}

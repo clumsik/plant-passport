@@ -167,69 +167,93 @@
       probe.src = "assets/pixel-map.png";
     }
 
-    // 이미 수집한 퀘스트 식물이 있는 구역에만 라벨 노출(스포일러 최소화)
     const target = currentTarget();
     const doneQuest = questPlants().filter((p) => isCollected(p.id));
-    const labelZones = new Set(doneQuest.map((p) => p.zone));
-    if (target) labelZones.add(target.zone);
 
-    ZONES.forEach((z) => {
-      if (!labelZones.has(z.id)) return;
-      const lbl = document.createElement("div");
-      lbl.className = "zone-label" + (target && z.id === target.zone ? " highlight" : "");
-      lbl.style.left = z.x + "%";
-      lbl.style.top = (z.y - 11) + "%";
-      lbl.textContent = z.name;
-      markers.appendChild(lbl);
-    });
+    // 지도에 표시할 대상: 이미 수집한 퀘스트 식물들 + 현재 목표 1개
+    const items = doneQuest.map((p) => ({ p: p, kind: "done" }));
+    if (target) items.push({ p: target, kind: "target" });
 
-    // 같은 구역에 여러 핀이 겹치지 않도록 소량 오프셋 부여
-    const zoneSeen = {};
-    function placePin(z, plantId) {
-      const n = zoneSeen[z.id] = (zoneSeen[z.id] || 0);
-      zoneSeen[z.id]++;
-      // 0번은 중앙, 이후는 살짝 어긋나게
-      const dx = n === 0 ? 0 : Math.cos(n * 2.4) * 6;
-      const dy = n === 0 ? 0 : Math.sin(n * 2.4) * 6;
-      return { x: z.x + dx, y: z.y + dy };
-    }
-
-    // 이미 수집 완료한 퀘스트 식물: 완료 핀으로 표시
-    doneQuest.forEach((p) => {
-      const z = zoneById(p.zone);
-      if (!z) return;
-      const pos = placePin(z, p.id);
-      const m = document.createElement("div");
-      m.className = "marker done" + (p.img ? " has-photo" : "");
-      m.style.left = pos.x + "%";
-      m.style.top = pos.y + "%";
-      m.innerHTML = plantVisual(p, "marker-photo");
-      m.title = p.name;
-      m.addEventListener("click", () => openPlantModal(p.id, "map"));
-      markers.appendChild(m);
-    });
-
-    // 현재 찾아야 할 식물: 단 하나의 '?' 핀만 펄스로 강조
-    if (target) {
-      const z = zoneById(target.zone);
-      if (z) {
-        const pos = placePin(z, target.id);
-        const m = document.createElement("div");
-        m.className = "marker locked pulse";
-        m.style.left = pos.x + "%";
-        m.style.top = pos.y + "%";
-        m.textContent = "?";
-        m.title = "다음 목표";
-        m.addEventListener("click", () => openPlantModal(target.id, "map"));
-        markers.appendChild(m);
+    if (items.length === 0) {
+      if (questTotal() > 0) {
+        const banner = document.createElement("div");
+        banner.className = "map-clear-banner";
+        banner.innerHTML = "🎉 목표 식물 " + questTotal() + "종을 모두 찾았어요!";
+        markers.appendChild(banner);
       }
-    } else if (questTotal() > 0) {
-      // 모든 퀘스트 완료: 안내 배너
-      const banner = document.createElement("div");
-      banner.className = "map-clear-banner";
-      banner.innerHTML = "🎉 목표 식물 " + questTotal() + "종을 모두 찾았어요!";
-      markers.appendChild(banner);
+      return;
     }
+
+    // 겹침 방지: 각 식물의 앵커(실제 위치)와, 밀어낸 핀 위치를 계산.
+    // 핀은 앵커 위쪽 슬롯에 배치하고, 슬롯이 겹치면 좌우로 분산.
+    const placed = []; // 이미 놓인 핀 위치들 {x,y}
+    const MINDIST = 20; // 핀 간 최소 거리(% 기준 대략치)
+
+    function farEnough(x, y) {
+      return placed.every((q) => {
+        const dx = q.x - x, dy = q.y - y;
+        return (dx * dx + dy * dy) >= (MINDIST * MINDIST) * 0.25;
+      });
+    }
+    // 앵커 주변에서 겹치지 않는 핀 위치 탐색(위쪽 우선 → 나선형)
+    function findSlot(ax, ay) {
+      const cands = [
+        [0, -16], [0, -24], [-16, -14], [16, -14],
+        [-20, -2], [20, -2], [0, -32], [-24, -22], [24, -22],
+        [-14, 12], [14, 12], [0, 14],
+      ];
+      for (const [dx, dy] of cands) {
+        const x = Math.max(8, Math.min(92, ax + dx));
+        const y = Math.max(10, Math.min(88, ay + dy));
+        if (farEnough(x, y)) return { x, y };
+      }
+      // 다 겹치면 그냥 위로
+      return { x: Math.max(8, Math.min(92, ax)), y: Math.max(10, Math.min(88, ay - 16)) };
+    }
+
+    items.forEach((it) => {
+      const z = zoneById(it.p.zone);
+      if (!z) return;
+      const ax = z.x, ay = z.y;              // 앵커(실제 위치)
+      const slot = findSlot(ax, ay);          // 핀 위치(겹침 회피)
+      placed.push(slot);
+
+      // 1) 연결선(앵커 → 핀)
+      const line = document.createElement("div");
+      line.className = "map-link";
+      const dx = slot.x - ax, dy = slot.y - ay;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const ang = Math.atan2(dy, dx) * 180 / Math.PI;
+      line.style.left = ax + "%";
+      line.style.top = ay + "%";
+      line.style.width = len + "%";
+      line.style.transform = "rotate(" + ang + "deg)";
+      markers.appendChild(line);
+
+      // 2) 앵커 점(실제 위치)
+      const anchor = document.createElement("div");
+      anchor.className = "map-anchor" + (it.kind === "target" ? " target" : "");
+      anchor.style.left = ax + "%";
+      anchor.style.top = ay + "%";
+      markers.appendChild(anchor);
+
+      // 3) 핀(사진 또는 ?) + 구역 라벨
+      const pin = document.createElement("div");
+      pin.className = "map-pin " + it.kind;
+      pin.style.left = slot.x + "%";
+      pin.style.top = slot.y + "%";
+
+      const label = it.kind === "target" ? "여기서 찾기" : it.p.name;
+      const labelClass = it.kind === "target" ? "pin-label highlight" : "pin-label";
+      const visual = it.kind === "target" ? "?" : plantVisual(it.p, "marker-photo");
+      const bubbleClass = "pin-bubble " + it.kind + (it.kind === "target" ? " pulse" : "") + (it.p.img && it.kind === "done" ? " has-photo" : "");
+
+      pin.innerHTML =
+        '<div class="' + bubbleClass + '">' + visual + '</div>' +
+        '<div class="' + labelClass + '">' + label + '</div>';
+      pin.addEventListener("click", () => openPlantModal(it.p.id, "map"));
+      markers.appendChild(pin);
+    });
   }
 
   // ---------- 도감 렌더 ----------
