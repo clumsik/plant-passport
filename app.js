@@ -155,29 +155,46 @@
 
   // ---------- 지도 렌더 ----------
   // 지도 상태: 선택된 카테고리(null=전체), 잠깐 강조/이름표시 중인 구역 id
-  let activeCat = null;
+  let activeCat = "all";   // "all"(전체) | "quest"(수집) | 카테고리 id
   let focusedZone = null;
   let focusTimer = null;
+
+  // 내가 찾아야 할(목표+수집) 식물들의 구역 id 목록(중복 제거, 순서 유지)
+  function questZoneList() {
+    const seen = {}, out = [];
+    questPlants().forEach((p) => {
+      if (!seen[p.zone] && zoneById(p.zone)) { seen[p.zone] = 1; out.push(p.zone); }
+    });
+    return out;
+  }
+
+  function setCat(cat) {
+    activeCat = cat;
+    focusedZone = null;
+    renderCategoryFilter(); renderCatList(); renderMap();
+  }
 
   function renderCategoryFilter() {
     const wrap = $("#cat-filter");
     if (!wrap || typeof CATEGORIES === "undefined") return;
     wrap.innerHTML = "";
-    // '전체' 칩
-    const all = document.createElement("button");
-    all.className = "cat-chip" + (activeCat === null ? " active" : "");
-    all.innerHTML = "🗺️ 전체";
-    all.addEventListener("click", () => { activeCat = null; focusedZone = null; renderCategoryFilter(); renderCatList(); renderMap(); });
-    wrap.appendChild(all);
+    // 특별 칩: 전체 / 수집(찾아야 할 곳)
+    const specials = [
+      { id: "all",   label: "🗺️ 전체" },
+      { id: "quest", label: "🎯 수집" },
+    ];
+    specials.forEach((sp) => {
+      const chip = document.createElement("button");
+      chip.className = "cat-chip" + (sp.id === "quest" ? " cat-quest" : "") + (activeCat === sp.id ? " active" : "");
+      chip.innerHTML = sp.label;
+      chip.addEventListener("click", () => setCat(sp.id));
+      wrap.appendChild(chip);
+    });
     CATEGORIES.forEach((c) => {
       const chip = document.createElement("button");
       chip.className = "cat-chip cat-" + c.id + (activeCat === c.id ? " active" : "");
       chip.innerHTML = c.icon + " " + c.name;
-      chip.addEventListener("click", () => {
-        activeCat = (activeCat === c.id ? null : c.id);
-        focusedZone = null;
-        renderCategoryFilter(); renderCatList(); renderMap();
-      });
+      chip.addEventListener("click", () => setCat(c.id));
       wrap.appendChild(chip);
     });
   }
@@ -186,19 +203,41 @@
     const box = $("#cat-list");
     if (!box) return;
     box.innerHTML = "";
-    if (!activeCat) { box.style.display = "none"; return; }
     box.style.display = "block";
-    const cat = (typeof CATEGORIES !== "undefined") ? CATEGORIES.find((c) => c.id === activeCat) : null;
-    const zonesInCat = ZONES.filter((z) => z.cat === activeCat);
+
+    // 표시할 구역 목록과 헤더 결정
+    let zones, headHtml;
+    if (activeCat === "all") {
+      zones = ZONES.slice();
+      headHtml = "🗺️ 전체 <span>" + zones.length + "곳</span> · 이름을 누르면 지도에서 위치를 알려줘요";
+    } else if (activeCat === "quest") {
+      zones = questZoneList().map((zid) => zoneById(zid)).filter(Boolean);
+      headHtml = "🎯 내가 찾을 곳 <span>" + zones.length + "곳</span> · 이 장소들로 이동해 QR을 스캔하세요";
+    } else {
+      const cat = (typeof CATEGORIES !== "undefined") ? CATEGORIES.find((c) => c.id === activeCat) : null;
+      zones = ZONES.filter((z) => z.cat === activeCat);
+      headHtml = (cat ? cat.icon + " " + cat.name : "") + " <span>" + zones.length + "곳</span> · 이름을 누르면 지도에서 위치를 알려줘요";
+    }
+
     const head = document.createElement("div");
     head.className = "cat-list-head";
-    head.innerHTML = (cat ? cat.icon + " " + cat.name : "") + " <span>" + zonesInCat.length + "곳</span> · 이름을 누르면 지도에서 위치를 알려줘요";
+    head.innerHTML = headHtml;
     box.appendChild(head);
+
+    if (zones.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "cat-list-empty";
+      empty.textContent = "표시할 장소가 없어요.";
+      box.appendChild(empty);
+      return;
+    }
+
     const grid = document.createElement("div");
     grid.className = "cat-list-grid";
-    zonesInCat.forEach((z) => {
+    zones.forEach((z) => {
       const item = document.createElement("button");
-      item.className = "cat-list-item" + (focusedZone === z.id ? " active" : "");
+      const isQuestZone = activeCat === "quest";
+      item.className = "cat-list-item" + (focusedZone === z.id ? " active" : "") + (isQuestZone ? " quest" : "");
       item.textContent = z.name;
       item.addEventListener("click", () => focusZone(z.id));
       grid.appendChild(item);
@@ -237,8 +276,8 @@
     // 모든 구역: 점만 표시(이름 없음 -> 겹침 원천 차단).
     // 선택 카테고리 점은 강조. 점 탭 or 목록 탭 시 이름 하나만 잠깐 표시.
     ZONES.forEach((z) => {
-      const inCat = activeCat && z.cat === activeCat;
-      const isQuestZone = questZoneIds.has(z.id);
+      const inCat = (activeCat !== "all" && activeCat !== "quest") && z.cat === activeCat;
+      const isQuestZone = questZoneIds.has(z.id) && (activeCat === "quest" || activeCat === "all");
       const isFocused = focusedZone === z.id;
       const dot = document.createElement("div");
       dot.className = "zone-dot"
@@ -305,20 +344,9 @@
         const py = n === 1 ? 30 : (16 + (68 * i) / (n - 1));
         drawLine(colX, py, z.x, z.y, it.kind === "target");
         renderPin(it, colX, py);
-        // 퀘스트 관련 구역 이름은 항상 표시(찾아갈 곳)
-        renderZoneName(z, it.kind === "target");
       });
     }
 
-    function renderZoneName(z, isTarget) {
-      if (!z) return;
-      const tag = document.createElement("div");
-      tag.className = "zone-name-tag quest" + (isTarget ? " target" : "");
-      tag.style.left = z.x + "%";
-      tag.style.top = (z.y + 4) + "%";
-      tag.textContent = z.name;
-      markers.appendChild(tag);
-    }
 
     function renderPin(it, px, py) {
       const pin = document.createElement("div");
