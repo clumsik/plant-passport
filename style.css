@@ -113,7 +113,7 @@ html, body {
 
 /* ===== 지도 ===== */
 .map-frame {
-  position: relative; width: 100%; aspect-ratio: 1024 / 720;
+  position: relative; width: 100%; aspect-ratio: 1376 / 768;
   border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow); border: 3px solid #fff;
   background: #eef4e0;
@@ -121,7 +121,7 @@ html, body {
 .map-bg {
   position: absolute; inset: 0;
   background-image: url("assets/pixel-map.png");
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 }
