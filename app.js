@@ -164,7 +164,7 @@
       mapBg.dataset.checked = "1";
       const probe = new Image();
       probe.onerror = () => mapBg.classList.add("fallback");
-      probe.src = "assets/sejong-map.png";
+      probe.src = "assets/pixel-map.png";
     }
 
     // 이미 수집한 퀘스트 식물이 있는 구역에만 라벨 노출(스포일러 최소화)
@@ -176,7 +176,7 @@
     ZONES.forEach((z) => {
       if (!labelZones.has(z.id)) return;
       const lbl = document.createElement("div");
-      lbl.className = "zone-label";
+      lbl.className = "zone-label" + (target && z.id === target.zone ? " highlight" : "");
       lbl.style.left = z.x + "%";
       lbl.style.top = (z.y - 11) + "%";
       lbl.textContent = z.name;
