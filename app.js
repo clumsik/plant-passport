@@ -397,15 +397,28 @@
 
     const tz = zoneById(target.zone);
     if (tz && overlay) {
-      // 지도는 프레임을 꽉 채움(scene inset:0). 실제 위치 = 원본 %좌표.
-      const sx = tz.x;
-      const sy = tz.y;
-      const LINE_LEN = 12;                     // 점선 길이(짧게)
-      const mx = Math.max(12, Math.min(88, sx));
-      const my = Math.max(9, sy - LINE_LEN);   // 위로 넘치지 않게 최소 9%
+      // 실제 목표 위치(원본 %좌표)
+      const sx = tz.x, sy = tz.y;
+
+      // 지도 초록 여백 3곳(마커를 놓을 후보 슬롯) — 지도 그림을 안 가리는 빈 영역
+      const SLOTS = [
+        { x: 10, y: 13 },   // 왼쪽 위
+        { x: 13, y: 86 },   // 왼쪽 아래
+        { x: 88, y: 78 },   // 오른쪽 아래
+      ];
+      // 실제 위치에서 가장 가까운 여백 슬롯 선택
+      let best = SLOTS[0], bestD = Infinity;
+      SLOTS.forEach((sl) => {
+        const dx = sl.x - sx, dy = sl.y - sy;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) { bestD = d; best = sl; }
+      });
+      const mx = best.x, my = best.y;
+
+      // 점선: 마커(여백) -> 실제 위치
       if (lines) {
         const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        ln.setAttribute("x1", mx); ln.setAttribute("y1", my + 6);
+        ln.setAttribute("x1", mx); ln.setAttribute("y1", my);
         ln.setAttribute("x2", sx); ln.setAttribute("y2", sy);
         ln.setAttribute("class", "leader target");
         lines.appendChild(ln);
@@ -416,13 +429,12 @@
         lines.appendChild(dot);
       }
 
+      // 목표 마커: '?' 박스만(라벨 없음)
       const pin = document.createElement("div");
       pin.className = "map-pin target";
       pin.style.left = mx + "%";
       pin.style.top = my + "%";
-      pin.innerHTML =
-        '<div class="pin-bubble target pulse">?</div>' +
-        '<div class="pin-label highlight">여기서 찾기</div>';
+      pin.innerHTML = '<div class="pin-bubble target pulse">?</div>';
       pin.addEventListener("click", () => openPlantModal(target.id, "map"));
       overlay.appendChild(pin);
     }
