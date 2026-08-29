@@ -5,7 +5,7 @@
   const STORAGE_PREFIX = "sejong_plant_dex_v3_"; // 입장코드별 localStorage 키 접두사
   const LAST_CODE_KEY = "sejong_last_code";        // 마지막 로그인 코드 기억
   const QUEST_SIZE = 5; // 사용자마다 찾아야 할 식물 수
-  const MAP_SCALE = 0.8; // 지도 줌아웃 비율(CSS .map-scene transform: scale과 일치)
+  const SCENE_TOP = 22; // 지도 영역 상단 시작(%) — CSS .map-scene { top } 과 일치
 
   // 현재 로그인한 입장 코드
   let ticketCode = null;
@@ -398,12 +398,12 @@
 
     const tz = zoneById(target.zone);
     if (tz && overlay) {
-      // scene 줌아웃(scale) 변환: 원본 %좌표 -> 프레임 화면 %좌표
-      const SC = MAP_SCALE;
-      const sx = 50 + (tz.x - 50) * SC;
-      const sy = 100 - (100 - tz.y) * SC;
-      const mx = Math.max(16, Math.min(84, sx));
-      const my = 8;
+      // scene은 프레임의 top:SCENE_TOP% ~ bottom 영역에 지도를 그림.
+      // 원본 %좌표 -> 프레임 화면 %좌표
+      const sx = tz.x;                              // 가로는 그대로
+      const sy = SCENE_TOP + tz.y * (100 - SCENE_TOP) / 100;
+      const mx = Math.max(14, Math.min(86, sx));    // 마커 x(화면 안쪽 클램프)
+      const my = 7;                                  // 상단 여백에 마커
 
       if (lines) {
         const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");

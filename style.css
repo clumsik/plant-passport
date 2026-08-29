@@ -113,7 +113,7 @@ html, body {
 
 /* ===== 지도 ===== */
 .map-frame {
-  position: relative; width: 100%; aspect-ratio: 1376 / 768;
+  position: relative; width: 100%; aspect-ratio: 1376 / 980;
   border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow); border: 3px solid #fff;
   background: #eef4e0;
@@ -1012,9 +1012,8 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
    ============================================================ */
 /* 지도+구역점을 함께 축소하고 하단 정렬 → 상단에 여백 확보 */
 .map-scene {
-  position: absolute; inset: 0;
-  transform: scale(0.8);
-  transform-origin: bottom center;
+  position: absolute; left: 0; right: 0; bottom: 0;
+  top: 22%;                 /* 상단 22%는 목표 마커 공간 */
 }
 /* 목표 마커 오버레이(줌아웃 안 됨, 프레임 전체 기준) */
 .map-overlay {
