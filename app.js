@@ -358,7 +358,7 @@
     // 선택 카테고리 점은 강조. 점 탭 or 목록 탭 시 이름 하나만 잠깐 표시.
     ZONES.forEach((z) => {
       const inCat = (activeCat !== "all" && activeCat !== "quest") && z.cat === activeCat;
-      const isQuestZone = questZoneIds.has(z.id) && (activeCat === "quest" || activeCat === "all");
+      const isQuestZone = questZoneIds.has(z.id) && (activeCat === "quest");
       const isFocused = focusedZone === z.id;
       const dot = document.createElement("div");
       dot.className = "zone-dot"
