@@ -155,9 +155,10 @@
 
   // ---------- 지도 렌더 ----------
   // 지도 상태: 선택된 카테고리(null=전체), 잠깐 강조/이름표시 중인 구역 id
-  let activeCat = "all";   // "all"(전체) | "quest"(수집) | 카테고리 id
+  let activeCat = "all";   // "all" | "search" | "quest" | 카테고리 id
   let focusedZone = null;
   let focusTimer = null;
+  let searchQuery = "";
 
   // 내가 찾아야 할(목표+수집) 식물들의 구역 id 목록(중복 제거, 순서 유지)
   function questZoneList() {
@@ -180,12 +181,16 @@
     wrap.innerHTML = "";
     // 특별 칩: 전체 / 수집(찾아야 할 곳)
     const specials = [
-      { id: "all",   label: "🗺️ 전체" },
-      { id: "quest", label: "🎯 수집" },
+      { id: "all",    label: "🗺️ 전체" },
+      { id: "search", label: "🔍 검색" },
+      { id: "quest",  label: "🎯 수집" },
     ];
     specials.forEach((sp) => {
       const chip = document.createElement("button");
-      chip.className = "cat-chip" + (sp.id === "quest" ? " cat-quest" : "") + (activeCat === sp.id ? " active" : "");
+      chip.className = "cat-chip"
+        + (sp.id === "quest" ? " cat-quest" : "")
+        + (sp.id === "search" ? " cat-search" : "")
+        + (activeCat === sp.id ? " active" : "");
       chip.innerHTML = sp.label;
       chip.addEventListener("click", () => setCat(sp.id));
       wrap.appendChild(chip);
@@ -199,11 +204,87 @@
     });
   }
 
+  // 검색용 정규화(공백/괄호 제거, 소문자)
+  function normStr(x) {
+    return String(x || "").toLowerCase().replace(/[\s()（）]/g, "");
+  }
+
+  // 이름에서 검색어 일치 부분 강조
+  function highlightMatch(name, nq) {
+    const chars = name.split(""); const map = []; let norm = "";
+    chars.forEach((ch, i) => { const n = normStr(ch); if (n) { norm += n; map.push(i); } });
+    const at = norm.indexOf(nq);
+    if (at === -1) return name;
+    const s0 = map[at], e0 = map[at + nq.length - 1];
+    return name.slice(0, s0) + '<mark class="search-hl">' + name.slice(s0, e0 + 1) + '</mark>' + name.slice(e0 + 1);
+  }
+
+  // 검색 입력창 + 자동완성 결과
+  function renderSearchBox(box) {
+    const head = document.createElement("div");
+    head.className = "cat-list-head";
+    head.innerHTML = "🔍 장소 검색 · 이름 일부만 입력해도 돼요 (예: '사' → 사계절전시온실)";
+    box.appendChild(head);
+
+    const wrap = document.createElement("div");
+    wrap.className = "search-input-wrap";
+    const input = document.createElement("input");
+    input.className = "search-input"; input.type = "text";
+    input.placeholder = "장소 이름 입력…"; input.value = searchQuery;
+    input.setAttribute("autocomplete", "off");
+    wrap.appendChild(input);
+    const clearBtn = document.createElement("button");
+    clearBtn.className = "search-clear"; clearBtn.innerHTML = "✕";
+    clearBtn.style.display = searchQuery ? "block" : "none";
+    wrap.appendChild(clearBtn);
+    box.appendChild(wrap);
+
+    const results = document.createElement("div");
+    results.className = "cat-list-grid search-results";
+    box.appendChild(results);
+
+    function renderResults() {
+      results.innerHTML = "";
+      const q = normStr(searchQuery);
+      const list = q ? ZONES.filter((z) => normStr(z.name).indexOf(q) !== -1) : ZONES.slice();
+      if (list.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "cat-list-empty";
+        empty.textContent = "'" + searchQuery + "' 검색 결과가 없어요.";
+        results.appendChild(empty);
+        return;
+      }
+      list.forEach((z) => {
+        const item = document.createElement("button");
+        item.className = "cat-list-item" + (focusedZone === z.id ? " active" : "");
+        item.innerHTML = q ? highlightMatch(z.name, q) : z.name;
+        item.addEventListener("click", () => focusZone(z.id));
+        results.appendChild(item);
+      });
+    }
+
+    input.addEventListener("input", () => {
+      searchQuery = input.value;
+      clearBtn.style.display = searchQuery ? "block" : "none";
+      renderResults();
+    });
+    clearBtn.addEventListener("click", () => {
+      searchQuery = ""; input.value = ""; clearBtn.style.display = "none";
+      input.focus(); renderResults();
+    });
+
+    renderResults();
+    setTimeout(() => input.focus(), 50);
+  }
+
   function renderCatList() {
     const box = $("#cat-list");
     if (!box) return;
     box.innerHTML = "";
     box.style.display = "block";
+
+    // 검색 모드: 입력창 + 자동완성
+    if (activeCat === "search") { renderSearchBox(box); return; }
 
     // 표시할 구역 목록과 헤더 결정
     let zones, headHtml;

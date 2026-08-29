@@ -962,3 +962,28 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .cat-list-empty {
   font-size: 14px; color: var(--muted); padding: 8px 4px;
 }
+
+/* ============================================================
+   검색 카테고리: 입력창 + 자동완성
+   ============================================================ */
+.cat-chip.cat-search { border-color: var(--water); }
+.cat-chip.cat-search.active { background: var(--water-deep); color: #fff; border-color: var(--gold); }
+
+.search-input-wrap { position: relative; margin: 4px 0 10px; }
+.search-input {
+  width: 100%; font-family: var(--font-body);
+  font-size: clamp(15px, 4.2vw, 17px); font-weight: 600;
+  padding: 13px 40px 13px 14px; border-radius: 8px;
+  border: 3px solid var(--wood-light); background: var(--parchment);
+  color: var(--ink); outline: none;
+}
+.search-input:focus { border-color: var(--water); }
+.search-clear {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 30px; height: 30px; border-radius: 50%; border: none;
+  background: var(--wood-light); color: #fff; font-size: 14px;
+  cursor: pointer; display: grid; place-items: center;
+}
+/* 검색 결과 리스트: 너무 길면 스크롤 */
+.search-results { max-height: 230px; overflow-y: auto; }
+.search-hl { background: var(--gold); color: var(--wood-dark); border-radius: 3px; padding: 0 1px; }
