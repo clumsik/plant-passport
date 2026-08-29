@@ -170,7 +170,7 @@
     const target = currentTarget();
     const doneQuest = questPlants().filter((p) => isCollected(p.id));
 
-    // 지도에 표시할 대상: 이미 수집한 퀘스트 식물들 + 현재 목표 1개
+    // 표시 대상: 완료한 퀘스트 식물들 + 현재 목표 1개
     const items = doneQuest.map((p) => ({ p: p, kind: "done" }));
     if (target) items.push({ p: target, kind: "target" });
 
@@ -184,76 +184,65 @@
       return;
     }
 
-    // 겹침 방지: 각 식물의 앵커(실제 위치)와, 밀어낸 핀 위치를 계산.
-    // 핀은 앵커 위쪽 슬롯에 배치하고, 슬롯이 겹치면 좌우로 분산.
-    const placed = []; // 이미 놓인 핀 위치들 {x,y}
-    const MINDIST = 20; // 핀 간 최소 거리(% 기준 대략치)
-
-    function farEnough(x, y) {
-      return placed.every((q) => {
-        const dx = q.x - x, dy = q.y - y;
-        return (dx * dx + dy * dy) >= (MINDIST * MINDIST) * 0.25;
-      });
-    }
-    // 앵커 주변에서 겹치지 않는 핀 위치 탐색(위쪽 우선 → 나선형)
-    function findSlot(ax, ay) {
-      const cands = [
-        [0, -16], [0, -24], [-16, -14], [16, -14],
-        [-20, -2], [20, -2], [0, -32], [-24, -22], [24, -22],
-        [-14, 12], [14, 12], [0, 14],
-      ];
-      for (const [dx, dy] of cands) {
-        const x = Math.max(8, Math.min(92, ax + dx));
-        const y = Math.max(10, Math.min(88, ay + dy));
-        if (farEnough(x, y)) return { x, y };
-      }
-      // 다 겹치면 그냥 위로
-      return { x: Math.max(8, Math.min(92, ax)), y: Math.max(10, Math.min(88, ay - 16)) };
-    }
-
+    // 핀은 절대 겹치지 않도록 좌/우 가장자리에 세로로 균등 배치.
+    // 각 핀 → 실제 위치(앵커)까지 선으로 연결.
+    // 앵커가 지도 왼쪽(x<50)이면 핀을 왼쪽 열, 오른쪽이면 오른쪽 열에 둠.
+    const left = [], right = [];
     items.forEach((it) => {
       const z = zoneById(it.p.zone);
       if (!z) return;
-      const ax = z.x, ay = z.y;              // 앵커(실제 위치)
-      const slot = findSlot(ax, ay);          // 핀 위치(겹침 회피)
-      placed.push(slot);
+      (z.x < 50 ? left : right).push(it);
+    });
 
-      // 1) 연결선(앵커 → 핀)
+    // 한 열에서 세로 위치를 균등 분배 (프레임 상단 14% ~ 하단 86%)
+    function layout(list, colX) {
+      const n = list.length;
+      list.forEach((it, i) => {
+        const z = zoneById(it.p.zone);
+        const py = n === 1 ? 26 : (14 + (72 * i) / (n - 1)); // 핀 세로 위치(%)
+        renderPin(it, z.x, z.y, colX, py, colX < 50 ? "left" : "right");
+      });
+    }
+
+    function renderPin(it, ax, ay, px, py, side) {
+      // 1) 연결선(핀 → 앵커)
       const line = document.createElement("div");
       line.className = "map-link";
-      const dx = slot.x - ax, dy = slot.y - ay;
+      const dx = ax - px, dy = ay - py;
       const len = Math.sqrt(dx * dx + dy * dy);
       const ang = Math.atan2(dy, dx) * 180 / Math.PI;
-      line.style.left = ax + "%";
-      line.style.top = ay + "%";
+      line.style.left = px + "%";
+      line.style.top = py + "%";
       line.style.width = len + "%";
       line.style.transform = "rotate(" + ang + "deg)";
       markers.appendChild(line);
 
-      // 2) 앵커 점(실제 위치)
+      // 2) 앵커(실제 위치 점)
       const anchor = document.createElement("div");
       anchor.className = "map-anchor" + (it.kind === "target" ? " target" : "");
       anchor.style.left = ax + "%";
       anchor.style.top = ay + "%";
       markers.appendChild(anchor);
 
-      // 3) 핀(사진 또는 ?) + 구역 라벨
+      // 3) 핀(사진/? + 라벨)
       const pin = document.createElement("div");
-      pin.className = "map-pin " + it.kind;
-      pin.style.left = slot.x + "%";
-      pin.style.top = slot.y + "%";
-
+      pin.className = "map-pin " + it.kind + " side-" + side;
+      pin.style.left = px + "%";
+      pin.style.top = py + "%";
       const label = it.kind === "target" ? "여기서 찾기" : it.p.name;
       const labelClass = it.kind === "target" ? "pin-label highlight" : "pin-label";
       const visual = it.kind === "target" ? "?" : plantVisual(it.p, "marker-photo");
       const bubbleClass = "pin-bubble " + it.kind + (it.kind === "target" ? " pulse" : "") + (it.p.img && it.kind === "done" ? " has-photo" : "");
-
       pin.innerHTML =
         '<div class="' + bubbleClass + '">' + visual + '</div>' +
         '<div class="' + labelClass + '">' + label + '</div>';
       pin.addEventListener("click", () => openPlantModal(it.p.id, "map"));
       markers.appendChild(pin);
-    });
+    }
+
+    // 왼쪽 열 x=13%, 오른쪽 열 x=87%
+    layout(left, 13);
+    layout(right, 87);
   }
 
   // ---------- 도감 렌더 ----------

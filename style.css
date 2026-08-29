@@ -791,3 +791,24 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .pin-label.highlight {
   background: var(--forest-deep); color: #fff; border: 2px solid var(--gold);
 }
+
+/* ============================================================
+   지도 핀 가장자리 열 배치 보정 (프레임 밖 잘림 방지)
+   ============================================================ */
+/* 왼쪽 열: 버블을 기준점 오른쪽으로 정렬 → 프레임 왼쪽에 안 잘림 */
+.map-pin.side-left {
+  transform: translate(0, -50%);
+  align-items: flex-start;
+}
+/* 오른쪽 열: 버블을 기준점 왼쪽으로 정렬 → 프레임 오른쪽에 안 잘림 */
+.map-pin.side-right {
+  transform: translate(-100%, -50%);
+  align-items: flex-end;
+}
+/* 라벨이 버블 폭을 넘어도 열 방향으로만 늘어나게 */
+.map-pin.side-left .pin-label { align-self: flex-start; }
+.map-pin.side-right .pin-label { align-self: flex-end; }
+
+/* 핀 버블 살짝 축소(가장자리 공간 확보) */
+.pin-bubble { width: 42px; height: 42px; }
+.pin-label { max-width: 40vw; overflow: hidden; text-overflow: ellipsis; }
