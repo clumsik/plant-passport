@@ -113,7 +113,7 @@ html, body {
 
 /* ===== 지도 ===== */
 .map-frame {
-  position: relative; width: 100%; aspect-ratio: 1376 / 900;
+  position: relative; width: 100%; aspect-ratio: 1376 / 768;
   border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow); border: 3px solid #fff;
   background: #eef4e0;
@@ -121,8 +121,8 @@ html, body {
 .map-bg {
   position: absolute; inset: 0;
   background-image: url("assets/pixel-map.png");
-  background-size: 100% auto;
-  background-position: center bottom;
+  background-size: cover;          /* 프레임을 꽉 채워 지도 최대 크기 */
+  background-position: center;
   background-repeat: no-repeat;
 }
 /* 이미지 로드 실패/미첨부 시 대체 배경 */
@@ -1012,8 +1012,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
    ============================================================ */
 /* 지도+구역점을 함께 축소하고 하단 정렬 → 상단에 여백 확보 */
 .map-scene {
-  position: absolute; left: 0; right: 0; bottom: 0;
-  top: 15%;                 /* 상단 15%는 목표 마커 공간 */
+  position: absolute; inset: 0;   /* 지도가 프레임 전체를 꽉 채움 */
 }
 /* 목표 마커 오버레이(줌아웃 안 됨, 프레임 전체 기준) */
 .map-overlay {

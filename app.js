@@ -5,7 +5,6 @@
   const STORAGE_PREFIX = "sejong_plant_dex_v3_"; // 입장코드별 localStorage 키 접두사
   const LAST_CODE_KEY = "sejong_last_code";        // 마지막 로그인 코드 기억
   const QUEST_SIZE = 5; // 사용자마다 찾아야 할 식물 수
-  const SCENE_TOP = 15; // 지도 영역 상단 시작(%) — CSS .map-scene { top } 과 일치
 
   // 현재 로그인한 입장 코드
   let ticketCode = null;
@@ -398,16 +397,15 @@
 
     const tz = zoneById(target.zone);
     if (tz && overlay) {
-      // scene은 프레임의 top:SCENE_TOP% ~ bottom 영역에 지도를 그림.
-      // 원본 %좌표 -> 프레임 화면 %좌표
-      const sx = tz.x;                              // 가로는 그대로
-      const sy = SCENE_TOP + tz.y * (100 - SCENE_TOP) / 100;
-      const mx = Math.max(14, Math.min(86, sx));    // 마커 x(화면 안쪽 클램프)
-      const my = 2;                                  // 상단 여백에 마커
-
+      // 지도는 프레임을 꽉 채움(scene inset:0). 실제 위치 = 원본 %좌표.
+      const sx = tz.x;
+      const sy = tz.y;
+      const LINE_LEN = 12;                     // 점선 길이(짧게)
+      const mx = Math.max(12, Math.min(88, sx));
+      const my = Math.max(9, sy - LINE_LEN);   // 위로 넘치지 않게 최소 9%
       if (lines) {
         const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        ln.setAttribute("x1", mx); ln.setAttribute("y1", my + 9);
+        ln.setAttribute("x1", mx); ln.setAttribute("y1", my + 6);
         ln.setAttribute("x2", sx); ln.setAttribute("y2", sy);
         ln.setAttribute("class", "leader target");
         lines.appendChild(ln);
