@@ -1023,3 +1023,12 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .map-overlay .map-pin.target { transform: translate(-50%, -50%); }
 .map-overlay .pin-bubble.target { width: 38px; height: 38px; font-size: 20px; }
 .map-overlay .pin-label { font-size: clamp(9px, 2.6vw, 11px); padding: 2px 8px; }
+
+/* ===== 로그인: 이름 + 생년월일 두 입력창 ===== */
+.login-card .login-input { margin-bottom: 10px; }
+.login-input-name {
+  font-size: 20px; letter-spacing: normal; font-weight: 700;
+  font-family: var(--font-body);
+}
+#login-birth { letter-spacing: 4px; font-size: 22px; font-family: var(--font-body); }
+#login-birth::placeholder { letter-spacing: normal; font-size: 15px; font-weight: 600; }

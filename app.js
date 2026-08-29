@@ -3,7 +3,8 @@
   "use strict";
 
   const STORAGE_PREFIX = "sejong_plant_dex_v3_"; // 입장코드별 localStorage 키 접두사
-  const LAST_CODE_KEY = "sejong_last_code";        // 마지막 로그인 코드 기억
+  const LAST_CODE_KEY = "sejong_last_code";        // 마지막 로그인 세션키 기억
+  const LAST_NAME_KEY = "sejong_last_name";        // 마지막 로그인 이름 기억(편의)
   const QUEST_SIZE = 5; // 사용자마다 찾아야 할 식물 수
 
   // 현재 로그인한 입장 코드
@@ -839,7 +840,8 @@
     const el = $("#current-code");
     if (!el) return;
     if (ticketCode) {
-      el.innerHTML = `<i data-lucide="ticket"></i> 입장번호 <strong>${ticketCode}</strong>`;
+      const nm = (ticketCode.split("_")[0]) || "";
+      el.innerHTML = `<i data-lucide="user"></i> <strong>${nm}</strong>님`;
       el.style.display = "flex";
     } else {
       el.innerHTML = "";
@@ -863,8 +865,7 @@
   // 로그아웃(확인 후 로그인 화면으로)
   function doLogout() {
     const ok = window.confirm(
-      "로그아웃할까요?\n\n진행 상황은 입장번호 " + (ticketCode || "") +
-      " 로 서버에 저장되어 있어, 같은 번호로 다시 로그인하면 이어서 할 수 있어요."
+      "로그아웃할까요?\n\n진행 상황은 이름과 생년월일로 서버에 저장되어 있어, 같은 정보로 다시 로그인하면 이어서 할 수 있어요."
     );
     if (!ok) return;
     // 마지막 상태를 서버에 즉시 저장
@@ -872,36 +873,48 @@
     ticketCode = null;
     try { localStorage.removeItem(LAST_CODE_KEY); } catch (e) {}
     updateCurrentCode();
-    const input = $("#login-code");
-    if (input) input.value = "";
+    const nameInput = $("#login-name");
+    const birthInput = $("#login-birth");
+    if (birthInput) birthInput.value = "";
     $("#login-error").textContent = "";
     $("#login-overlay").classList.remove("hidden");
-    if (input) input.focus();
+    if (nameInput) nameInput.focus();
   }
 
-  // ---------- 로그인 처리 ----------
-  async function doLogin(code) {
+  // ---------- 로그인 처리 (이름 + 생년월일 6자리) ----------
+  async function doLogin(name, birth) {
     const btn = $("#login-start");
     const errEl = $("#login-error");
     errEl.textContent = "";
 
-    if (!/^\d{6}$/.test(code)) {
-      errEl.textContent = "6자리 숫자를 정확히 입력해 주세요.";
+    name = (name || "").trim();
+    birth = (birth || "").trim();
+
+    if (name.length < 1) {
+      errEl.textContent = "이름을 입력해 주세요.";
+      return;
+    }
+    if (!/^\d{6}$/.test(birth)) {
+      errEl.textContent = "생년월일 6자리를 정확히 입력해 주세요. (예: 940721)";
       return;
     }
     btn.classList.add("loading"); btn.disabled = true;
 
-    ticketCode = code;
-    try { localStorage.setItem(LAST_CODE_KEY, code); } catch (e) {}
+    // 세션 키: "이름_생년월일" (Supabase ticket_code로 사용)
+    ticketCode = name + "_" + birth;
+    try {
+      localStorage.setItem(LAST_CODE_KEY, ticketCode);
+      localStorage.setItem(LAST_NAME_KEY, name);
+    } catch (e) {}
 
     // 1) 로컬 캐시 먼저 로드(오프라인 대비)
     state = loadLocalState();
 
     // 2) 서버에서 세션 조회 → 있으면 이어받기
-    const remote = await fetchRemoteSession(code);
+    const remote = await fetchRemoteSession(ticketCode);
     if (remote) {
       state = remote;
-      saveLocalState(); // 서버 데이터를 로컬에도 캐시
+      saveLocalState();
     }
 
     btn.classList.remove("loading"); btn.disabled = false;
@@ -909,22 +922,27 @@
   }
 
   function setupLoginUI() {
-    const input = $("#login-code");
+    const nameInput = $("#login-name");
+    const birthInput = $("#login-birth");
     const btn = $("#login-start");
-    // 숫자만 허용
-    input.addEventListener("input", () => {
-      input.value = input.value.replace(/\D/g, "").slice(0, 6);
+
+    const submit = () => doLogin(nameInput.value, birthInput.value);
+
+    // 생년월일: 숫자만 6자리
+    birthInput.addEventListener("input", () => {
+      birthInput.value = birthInput.value.replace(/\D/g, "").slice(0, 6);
       $("#login-error").textContent = "";
     });
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") doLogin(input.value.trim());
-    });
-    btn.addEventListener("click", () => doLogin(input.value.trim()));
+    nameInput.addEventListener("input", () => { $("#login-error").textContent = ""; });
 
-    // 지난번 로그인 코드가 있으면 미리 채워줌(편의)
+    nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") birthInput.focus(); });
+    birthInput.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+    btn.addEventListener("click", submit);
+
+    // 지난번 이름을 미리 채워줌(편의). 생년월일은 보안상 비워둠.
     try {
-      const last = localStorage.getItem(LAST_CODE_KEY);
-      if (last) input.value = last;
+      const lastName = localStorage.getItem(LAST_NAME_KEY);
+      if (lastName) nameInput.value = lastName;
     } catch (e) {}
   }
 

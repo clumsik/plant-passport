@@ -28,12 +28,14 @@
     <div class="login-card">
       <div class="login-logo"><i data-lucide="leaf"></i></div>
       <h1 class="login-title">국립세종수목원<br>식물도감</h1>
-      <p class="login-sub">입장권에 적힌 <strong>6자리 번호</strong>를 입력하고<br>식물 탐험을 시작하세요.</p>
-      <input id="login-code" class="login-input" type="tel" inputmode="numeric"
-             maxlength="6" placeholder="● ● ● ● ● ●" autocomplete="off" />
+      <p class="login-sub"><strong>이름</strong>과 <strong>생년월일 6자리</strong>를 입력하고<br>식물 탐험을 시작하세요.</p>
+      <input id="login-name" class="login-input login-input-name" type="text"
+             maxlength="20" placeholder="이름" autocomplete="off" />
+      <input id="login-birth" class="login-input" type="tel" inputmode="numeric"
+             maxlength="6" placeholder="생년월일 6자리 (예: 940721)" autocomplete="off" />
       <div id="login-error" class="login-error"></div>
       <button id="login-start" class="login-btn">시작하기</button>
-      <p class="login-note">같은 번호로 다시 접속하면 진행 상황이 이어집니다.</p>
+      <p class="login-note">같은 이름과 생년월일로 다시 접속하면 진행 상황이 이어집니다.</p>
     </div>
   </div>
 
