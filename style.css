@@ -1006,3 +1006,20 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
   white-space: nowrap;
 }
 .today-date i { width: 15px; height: 15px; }
+
+/* ============================================================
+   지도 줌아웃 + 목표 마커를 지도 바깥(상단)에 배치
+   ============================================================ */
+/* 지도+구역점을 함께 축소하고 하단 정렬 → 상단에 여백 확보 */
+.map-scene {
+  position: absolute; inset: 0;
+  transform: scale(0.8);
+  transform-origin: bottom center;
+}
+/* 목표 마커 오버레이(줌아웃 안 됨, 프레임 전체 기준) */
+.map-overlay {
+  position: absolute; inset: 0; z-index: 8; pointer-events: none;
+}
+.map-overlay .map-pin { pointer-events: auto; }
+/* 상단에 놓인 목표 마커: 중심 정렬 */
+.map-overlay .map-pin.target { transform: translate(-50%, 0); }

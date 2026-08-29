@@ -5,6 +5,7 @@
   const STORAGE_PREFIX = "sejong_plant_dex_v3_"; // 입장코드별 localStorage 키 접두사
   const LAST_CODE_KEY = "sejong_last_code";        // 마지막 로그인 코드 기억
   const QUEST_SIZE = 5; // 사용자마다 찾아야 할 식물 수
+  const MAP_SCALE = 0.8; // 지도 줌아웃 비율(CSS .map-scene transform: scale과 일치)
 
   // 현재 로그인한 입장 코드
   let ticketCode = null;
@@ -381,7 +382,10 @@
       }
     });
 
-    // ---- 현재 목표 1개만 실제 위치에 표시(선 없음). 완료는 지도에 표시하지 않음. ----
+    // ---- 현재 목표 1개만: 지도 바깥(상단)에 마커 + 실제 위치까지 점선 연결 ----
+    const overlay = $("#map-overlay");
+    if (overlay) overlay.innerHTML = "";
+
     if (!target) {
       if (questTotal() > 0) {
         const banner = document.createElement("div");
@@ -393,16 +397,36 @@
     }
 
     const tz = zoneById(target.zone);
-    if (tz) {
+    if (tz && overlay) {
+      // scene 줌아웃(scale) 변환: 원본 %좌표 -> 프레임 화면 %좌표
+      const SC = MAP_SCALE;
+      const sx = 50 + (tz.x - 50) * SC;
+      const sy = 100 - (100 - tz.y) * SC;
+      const mx = Math.max(16, Math.min(84, sx));
+      const my = 8;
+
+      if (lines) {
+        const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        ln.setAttribute("x1", mx); ln.setAttribute("y1", my + 4);
+        ln.setAttribute("x2", sx); ln.setAttribute("y2", sy);
+        ln.setAttribute("class", "leader target");
+        lines.appendChild(ln);
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", sx); dot.setAttribute("cy", sy);
+        dot.setAttribute("r", 2.4);
+        dot.setAttribute("class", "leader-dot target");
+        lines.appendChild(dot);
+      }
+
       const pin = document.createElement("div");
       pin.className = "map-pin target";
-      pin.style.left = tz.x + "%";
-      pin.style.top = tz.y + "%";
+      pin.style.left = mx + "%";
+      pin.style.top = my + "%";
       pin.innerHTML =
         '<div class="pin-bubble target pulse">?</div>' +
         '<div class="pin-label highlight">여기서 찾기</div>';
       pin.addEventListener("click", () => openPlantModal(target.id, "map"));
-      markers.appendChild(pin);
+      overlay.appendChild(pin);
     }
   }
 
