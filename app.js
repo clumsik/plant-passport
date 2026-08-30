@@ -36,13 +36,14 @@
   }
 
   // ---------- 상태(localStorage + Supabase) ----------
-  // state = { collected: {...}, badges: {...}, quest: [...] }
-  function emptyState() { return { collected: {}, badges: {}, quest: [] }; }
+  // state = { collected: {...}, badges: {...}, quest: [...], visits: ["YYYY-MM-DD", ...] }
+  function emptyState() { return { collected: {}, badges: {}, quest: [], visits: [] }; }
   function normalizeState(s) {
     s = s || {};
     s.collected = s.collected || {};
     s.badges = s.badges || {};
     s.quest = Array.isArray(s.quest) ? s.quest : [];
+    s.visits = Array.isArray(s.visits) ? s.visits : [];
     return s;
   }
   function loadLocalState() {
@@ -70,12 +71,12 @@
     if (!sb) return null;
     try {
       const { data, error } = await sb
-        .from("sessions").select("quest,collected,badges")
+        .from("sessions").select("quest,collected,badges,visits")
         .eq("ticket_code", code).maybeSingle();
       if (error) { console.warn("fetch error", error.message); return null; }
       if (!data) return null;
       return normalizeState({
-        quest: data.quest, collected: data.collected, badges: data.badges,
+        quest: data.quest, collected: data.collected, badges: data.badges, visits: data.visits,
       });
     } catch (e) { return null; }
   }
@@ -88,6 +89,7 @@
         quest: state.quest,
         collected: state.collected,
         badges: state.badges,
+        visits: state.visits,
         updated_at: new Date().toISOString(),
       }, { onConflict: "ticket_code" });
     } catch (e) { /* 오프라인 등: 로컬엔 이미 저장됨 */ }
@@ -837,10 +839,26 @@
     renderBadges();
   }
 
+  // 오늘 날짜를 'YYYY-MM-DD'(로컬 기준)로 반환
+  function todayKey() {
+    const d = new Date();
+    const p2 = (n) => String(n).padStart(2, "0");
+    return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate());
+  }
+  // 방문 기록: 하루 1회만 오늘 날짜를 visits에 추가(접속 경로 무관).
+  // 이미 오늘 기록이 있으면 아무 것도 하지 않음 → 중복 저장/트래픽 방지.
+  function recordVisitToday() {
+    const today = todayKey();
+    if (state.visits.indexOf(today) !== -1) return; // 오늘 이미 방문 기록됨
+    state.visits.push(today);
+    saveState(); // 로컬 + 서버(visits 포함) 반영
+  }
+
   // ---------- 앱 시작(로그인 성공 후 호출) ----------
   function startApp() {
     $("#login-overlay").classList.add("hidden");
     ensureQuest();        // 목표 5종 확정(없으면 새로 배정 → 저장 시 서버 반영)
+    recordVisitToday();   // 오늘 방문을 하루 1회 기록(서버 visits 반영)
     saveState();          // 새 배정/이어받기 상태를 로컬+서버에 반영
     updateCurrentCode();
     renderAll();
@@ -998,7 +1016,9 @@
     quest: function () { return state.quest.slice(); },
     // 현재 코드의 진행만 초기화 + 목표 재배정(로컬+서버)
     reset: function () {
-      state = emptyState(); ensureQuest(); saveState(); renderAll();
+      const keepVisits = Array.isArray(state.visits) ? state.visits.slice() : [];
+      state = emptyState(); state.visits = keepVisits; // 방문 통계는 유지
+      ensureQuest(); saveState(); renderAll();
       showToast("초기화 완료! 새로운 목표 " + questTotal() + "종이 배정됐어요.");
     },
     // 로그아웃(확인창 포함)
