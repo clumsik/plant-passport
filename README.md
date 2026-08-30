@@ -27,9 +27,13 @@ plant-passport/
 ├── index.html          # 앱 화면 구조 (탭, 모달)
 ├── style.css           # 보태니컬 테마 스타일
 ├── app.js              # 앱 로직 (수집/지도/도감/뱃지/스캐너)
-├── data.js             # 식물 30종 · 구역 · 뱃지 데이터
+├── data.js             # 식물 10종 · 구역 · 뱃지 데이터
+├── config.js           # Supabase 연결 설정 (공개 anon 키)
+├── qr.html             # 현장 부착용 QR 시트 생성 페이지
 └── assets/
-    └── sejong-map.png  # 국립세종수목원 안내도 (직접 추가 필요)
+    ├── pixel-map.png   # 앱에서 사용하는 픽셀 스타일 지도
+    ├── sejong-map.png  # 좌표 기준용 국립세종수목원 안내도
+    └── plants/         # 식물 사진 (plant_001.png …)
 ```
 
 ## 로컬 실행
@@ -47,9 +51,10 @@ QR 흐름 테스트는 `http://localhost:8000/?collect=plant_003` 처럼 파라�
 ## 개발자 콘솔 헬퍼
 
 ```js
+SejongDex.code()         // 현재 로그인 티켓 코드(해시) 확인
 SejongDex.quest()        // 내게 배정된 목표 5종 id
 SejongDex.collect("plant_003")  // 특정 식물 수집 시뮬레이션
-SejongDex.reroll()       // 목표 5종만 새로 뽑기
-SejongDex.reset()        // 완전 초기화 + 새 목표 재배정
 SejongDex.collectAll()   // 목표 전부 수집 (완료 화면 확인)
+SejongDex.reset()        // 진행 초기화 + 새 목표 재배정
+SejongDex.logout()       // 로그아웃 (확인창 표시)
 ```
