@@ -478,11 +478,97 @@
   }
 
   // ---------- 뱃지 로직 ----------
+  // 계절 → 해당 월 집합
+  const SEASON_MONTHS = {
+    spring: [3, 4, 5],
+    summer: [6, 7, 8],
+    autumn: [9, 10, 11],
+    winter: [12, 1, 2],
+  };
+
+  // 수집한 식물 id 목록(전체 도감 기준)
+  const collectedIds = () => Object.keys(state.collected || {});
+
+  // Bloom_Period 텍스트를 개화 월 집합으로 파싱.
+  // "M~N월"(M<=N): M..N, "M~N월"(M>N): M..12,1..N(연말 넘김), "M월": [M].
+  // 파싱 불가/범위 밖이면 빈 배열.
+  function bloomMonths(bloom) {
+    const t = String(bloom || "");
+    let m = t.match(/(\d{1,2})\s*[~-]\s*(\d{1,2})\s*월/);
+    if (m) {
+      let a = +m[1], b = +m[2];
+      if (a < 1 || a > 12 || b < 1 || b > 12) return [];
+      const out = [];
+      if (a <= b) { for (let i = a; i <= b; i++) out.push(i); }
+      else { for (let i = a; i <= 12; i++) out.push(i); for (let i = 1; i <= b; i++) out.push(i); }
+      return out;
+    }
+    m = t.match(/(\d{1,2})\s*월/);
+    if (m) { const a = +m[1]; return (a >= 1 && a <= 12) ? [a] : []; }
+    return [];
+  }
+
+  // 수집한 식물들의 서로 다른 구역 카테고리 수(전체 도감 기준)
+  function distinctCategoryCount() {
+    const cats = {};
+    collectedIds().forEach((id) => {
+      const p = plantById(id);
+      if (!p) return;
+      const z = zoneById(p.zone);
+      if (z && z.cat) cats[z.cat] = 1;
+    });
+    return Object.keys(cats).length;
+  }
+
+  // 특정 계절에 개화하는(bloom이 그 계절 월을 하나라도 포함) 수집 식물 수(전체 도감 기준)
+  function seasonBloomCount(season) {
+    const months = SEASON_MONTHS[season] || [];
+    let n = 0;
+    collectedIds().forEach((id) => {
+      const p = plantById(id);
+      if (!p) return;
+      const bm = bloomMonths(p.bloom);
+      if (bm.some((mo) => months.indexOf(mo) !== -1)) n++;
+    });
+    return n;
+  }
+
+  // 수집 시각(타임스탬프) 중 조건에 맞는 게 하나라도 있는지 검사
+  function anyScanMatches(pred) {
+    const c = state.collected || {};
+    for (const id in c) {
+      const d = new Date(c[id]);
+      if (isNaN(d.getTime())) continue;
+      if (pred(d)) return true;
+    }
+    return false;
+  }
+
   function badgeUnlocked(badge) {
     const c = badge.condition;
+    if (!c) return false;
+    // 기존: 퀘스트(배정 5종) 기준
     if (c.type === "count") return collectedCount() >= c.value;
-    // 퀘스트 전체(5종) 완료 조건
     if (c.type === "complete") return questTotal() > 0 && collectedCount() >= questTotal();
+    // 신규: 전체 도감(수집한 모든 식물) 기준
+    // 특정 시간대(로컬 hour)에 스캔했는지: [from, to) 반열림 구간, to 생략 시 24
+    if (c.type === "hourRange") {
+      const from = c.from == null ? 0 : c.from;
+      const to = c.to == null ? 24 : c.to;
+      return anyScanMatches((d) => { const h = d.getHours(); return h >= from && h < to; });
+    }
+    // 특정 월(1~12)에 스캔했는지 (연도 무관)
+    if (c.type === "month") {
+      return anyScanMatches((d) => (d.getMonth() + 1) === c.value);
+    }
+    // 서로 다른 구역 카테고리 수가 임계치 이상
+    if (c.type === "categorySpread") {
+      return distinctCategoryCount() >= c.value;
+    }
+    // 특정 계절 개화 식물 수가 임계치 이상
+    if (c.type === "seasonBloom") {
+      return seasonBloomCount(c.season) >= c.value;
+    }
     return false;
   }
   // 새로 해금된 뱃지 목록 반환 (state.badges 업데이트)
@@ -524,8 +610,7 @@
       zone.innerHTML =
         `<div class="cert-locked">` +
         `<i data-lucide="trophy"></i><br>` +
-        `내게 배정된 목표 식물(${total}종)을 모두 찾으면<br><strong>탐험 완료 인증 카드</strong>가 발급됩니다.` +
-        `<br><span style="font-size:12px">현재 ${got} / ${total} 수집</span>` +
+        `수목원을 탐험하며<br><strong>다양한 뱃지를 획득</strong>해보세요.` +
         `</div>`;
       refreshIcons();
       return;
@@ -813,6 +898,21 @@
   }
 
   $("#scan-fab").addEventListener("click", startScanner);
+
+  // 스크롤 중에는 스캔 버튼을 반투명 처리해 뒤 콘텐츠 가시성을 높인다.
+  // 스크롤이 멈추면(150ms 후) 원래 불투명도로 복귀. 클릭은 항상 가능.
+  function setupScanFabScroll() {
+    const fab = $("#scan-fab");
+    const scroller = $("#main-view");
+    if (!fab || !scroller) return;
+    let idleTimer = null;
+    const onScroll = () => {
+      fab.classList.add("scrolling");
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => fab.classList.remove("scrolling"), 150);
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+  }
   $("#scanner-close").addEventListener("click", () => { stopScanner(); closeModal("#scanner-modal"); });
 
   // ---------- URL 파라미터 자동 수집 (최우선 기능) ----------
@@ -871,8 +971,8 @@
     const el = $("#current-code");
     if (!el) return;
     if (ticketCode) {
-      const nm = displayName || "탐험가";
-      el.innerHTML = `<i data-lucide="user"></i> <strong>${nm}</strong>님`;
+      const nm = displayName || "";
+      el.innerHTML = `<i data-lucide="user"></i> <strong>${nm}</strong> 탐험가님`;
       el.style.display = "flex";
     } else {
       el.innerHTML = "";
@@ -998,6 +1098,7 @@
   function boot() {
     initSupabase();
     setupLoginUI();
+    setupScanFabScroll();
     const lo = $("#logout-btn");
     if (lo) lo.addEventListener("click", doLogout);
     refreshIcons(); // 로그인 화면 아이콘 렌더

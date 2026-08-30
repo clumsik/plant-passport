@@ -62,6 +62,31 @@ const BADGES = [
   { id: "getting_warm", name: "탐험의 시작",  icon: "footprints", desc: "목표 식물 3종을 찾았어요.",            condition: { type: "count", value: 3 } },
   { id: "almost_there", name: "한 걸음 남았다", icon: "compass", desc: "목표 식물 4종을 찾았어요.",            condition: { type: "count", value: 4 } },
   { id: "sejong_explorer", name: "세종의 탐험가", icon: "award", desc: "내게 배정된 목표 식물을 모두 찾아 미션을 완료했어요!", condition: { type: "complete" } },
+
+  // --- 확장 뱃지 (전체 도감 기준: 수집한 모든 식물 대상) ---
+  // 시간대
+  { id: "early_bird", name: "얼리버드", icon: "sunrise", desc: "오전(낮 12시 이전)에 식물을 스캔했어요.", condition: { type: "hourRange", from: 0, to: 12 } },
+  { id: "night_owl", name: "나이트아울", icon: "moon", desc: "야간 개장 시간대(18시 이후)에 식물을 스캔했어요.", condition: { type: "hourRange", from: 18, to: 24 } },
+  // 탐험 다양성
+  { id: "diligent_explorer", name: "부지런한 탐험가", icon: "shapes", desc: "서로 다른 3개 구역 카테고리에서 식물을 수집했어요.", condition: { type: "categorySpread", value: 3 } },
+  // 계절(개화기) — 각 10종
+  { id: "spring_explorer", name: "봄의 탐험가", icon: "flower-2", desc: "봄(3~5월)에 개화하는 식물 10종을 스캔했어요.", condition: { type: "seasonBloom", season: "spring", value: 10 } },
+  { id: "summer_explorer", name: "여름의 탐험가", icon: "sun", desc: "여름(6~8월)에 개화하는 식물 10종을 스캔했어요.", condition: { type: "seasonBloom", season: "summer", value: 10 } },
+  { id: "autumn_explorer", name: "가을의 탐험가", icon: "leaf", desc: "가을(9~11월)에 개화하는 식물 10종을 스캔했어요.", condition: { type: "seasonBloom", season: "autumn", value: 10 } },
+  { id: "winter_explorer", name: "겨울의 탐험가", icon: "snowflake", desc: "겨울(12~2월)에 개화하는 식물 10종을 스캔했어요.", condition: { type: "seasonBloom", season: "winter", value: 10 } },
+  // 월별 — 스캔한 달마다
+  { id: "month_01", name: "1월의 탐험가", icon: "calendar", desc: "1월에 식물을 스캔했어요.", condition: { type: "month", value: 1 } },
+  { id: "month_02", name: "2월의 탐험가", icon: "calendar", desc: "2월에 식물을 스캔했어요.", condition: { type: "month", value: 2 } },
+  { id: "month_03", name: "3월의 탐험가", icon: "calendar", desc: "3월에 식물을 스캔했어요.", condition: { type: "month", value: 3 } },
+  { id: "month_04", name: "4월의 탐험가", icon: "calendar", desc: "4월에 식물을 스캔했어요.", condition: { type: "month", value: 4 } },
+  { id: "month_05", name: "5월의 탐험가", icon: "calendar", desc: "5월에 식물을 스캔했어요.", condition: { type: "month", value: 5 } },
+  { id: "month_06", name: "6월의 탐험가", icon: "calendar", desc: "6월에 식물을 스캔했어요.", condition: { type: "month", value: 6 } },
+  { id: "month_07", name: "7월의 탐험가", icon: "calendar", desc: "7월에 식물을 스캔했어요.", condition: { type: "month", value: 7 } },
+  { id: "month_08", name: "8월의 탐험가", icon: "calendar", desc: "8월에 식물을 스캔했어요.", condition: { type: "month", value: 8 } },
+  { id: "month_09", name: "9월의 탐험가", icon: "calendar", desc: "9월에 식물을 스캔했어요.", condition: { type: "month", value: 9 } },
+  { id: "month_10", name: "10월의 탐험가", icon: "calendar", desc: "10월에 식물을 스캔했어요.", condition: { type: "month", value: 10 } },
+  { id: "month_11", name: "11월의 탐험가", icon: "calendar", desc: "11월에 식물을 스캔했어요.", condition: { type: "month", value: 11 } },
+  { id: "month_12", name: "12월의 탐험가", icon: "calendar", desc: "12월에 식물을 스캔했어요.", condition: { type: "month", value: 12 } },
 ];
 
 // 식물 데이터 (10종 v1)
@@ -127,4 +152,34 @@ const PLANTS = [
     img: "assets/plants/plant_010.png",
     hint: "희귀특산식물원에서 잎을 스치면 향이 나는 보랏빛 꽃을 찾아보세요.",
     desc: "'향유'라는 이름은 어디서 왔을까? 잎을 스치기만 해도 진한 향이 퍼져서 '향기 나는 기름(香薷)'이라는 뜻의 한자에서 유래했어. 그중에서도 잎이 가늘고 좁은 품종이라 '가는잎'이 앞에 붙은 거야." },
+
+  { id: "plant_011", name: "부채파초", sci: "", zone: "greenhouse",
+    locations: "사계절전시온실", bloom: "7~8월", emoji: "🌴",
+    img: "assets/plants/plant_011.png",
+    hint: "사계절전시온실에서 부채처럼 넓게 펼쳐진 큰 잎을 찾아보세요.",
+    desc: "왜 '부채'파초일까? 잎이 부채처럼 넓게 펼쳐져 자라서 붙은 이름! 여인초라고도 불려." },
+
+  { id: "plant_012", name: "층꽃나무", sci: "", zone: "traditional_gung",
+    locations: "한국전통정원(궁궐정원)", bloom: "8~10월", emoji: "💜",
+    img: "assets/plants/plant_012.png",
+    hint: "궁궐정원에서 줄기를 따라 층층이 모여 피는 보랏빛 꽃을 찾아보세요.",
+    desc: "왜 층'꽃'나무일까? 잎겨드랑이마다 꽃이 층층이 쌓이듯 모여 피기 때문이야." },
+
+  { id: "plant_013", name: "석산", sci: "", zone: "traditional_seoseo",
+    locations: "한국전통정원(별서정원), 어린이정원", bloom: "9~10월", emoji: "🔴",
+    img: "assets/plants/plant_013.png",
+    hint: "별서정원과 어린이정원에서 잎 없이 붉게 피어난 꽃대를 찾아보세요.",
+    desc: "왜 '석산'일까? 한자로 '돌마늘'이란 뜻인데, 뿌리 모양이 마늘을 닮아 붙여진 이름이야." },
+
+  { id: "plant_014", name: "울릉국화", sci: "", zone: "rare_garden",
+    locations: "희귀특산식물원, 야생화원", bloom: "9~10월", emoji: "🌼",
+    img: "assets/plants/plant_014.png",
+    hint: "희귀특산식물원과 야생화원에서 하얀 국화를 닮은 꽃을 찾아보세요.",
+    desc: "왜 '울릉'국화일까? 울릉도에서만 자라는 한국 고유 특산식물이라 붙여진 이름이야." },
+
+  { id: "plant_015", name: "두메부추", sci: "", zone: "life_garden",
+    locations: "생활정원", bloom: "8~9월", emoji: "💜",
+    img: "assets/plants/plant_015.png",
+    hint: "생활정원에서 동그란 공 모양으로 모여 피는 연보라 꽃을 찾아보세요.",
+    desc: "왜 '두메'부추일까? 깊은 산골(두메)에서 자라는 부추라서 붙여진 이름이야." },
 ];

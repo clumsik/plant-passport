@@ -26,7 +26,7 @@
   <!-- ===== 입장 코드 로그인 화면 ===== -->
   <div id="login-overlay" class="login-overlay">
     <div class="login-card">
-      <div class="login-logo"><i data-lucide="leaf"></i></div>
+      <div class="login-logo"><i data-lucide="sprout"></i></div>
       <h1 class="login-title">국립세종수목원<br>식물도감</h1>
       <p class="login-sub"><strong>이름</strong>, <strong>생년월일 6자리</strong>,<br><strong>휴대폰 뒤 4자리</strong>를 입력하고 시작하세요.</p>
       <input id="login-name" class="login-input login-input-name" type="text"
@@ -45,7 +45,7 @@
     <!-- ===== 상단 헤더 (진행도) ===== -->
     <header class="app-header">
       <div class="header-title">
-        <span class="logo-mark"><i data-lucide="leaf"></i></span>
+        <span class="logo-mark"><i data-lucide="sprout"></i></span>
         <div class="header-text">
           <h1>국립세종수목원 식물도감</h1>
           <p>QR로 식물을 모아보세요</p>
@@ -61,7 +61,7 @@
       </div>
       <div class="progress-wrap">
         <div class="progress-label">
-          <span>수집 진행도</span>
+          <span>오늘의 식물 수집 진행도</span>
           <strong id="progress-text">0 / 30 (0%)</strong>
         </div>
         <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
@@ -95,6 +95,12 @@
           <p>수집한 식물이 컬러로 활성화됩니다.</p>
         </div>
         <div id="dex-grid" class="dex-grid"></div>
+        <div class="cert-zone">
+          <div class="cert-locked">
+            <i data-lucide="sprout"></i><br>
+            국립세종수목원의 식물이<br><strong>지속적으로 업데이트</strong>되고 있어요.
+          </div>
+        </div>
       </section>
 
       <!-- 뱃지 탭 -->
