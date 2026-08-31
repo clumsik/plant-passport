@@ -467,8 +467,10 @@
       card.className = "dex-card " + (done ? "unlocked" : "locked");
 
       const isNew = done && state._recentlyCollected === p.id;
+      const numStr = String(idx + 1).padStart(2, "0");
       card.innerHTML =
-        `<span class="dex-num">#${String(idx + 1).padStart(2, "0")}</span>` +
+        (!done ? `<span class="dex-num">#${numStr}</span>` : "") +
+        (done ? `<span class="dex-badge">No.${numStr}</span>` : "") +
         (isNew ? `<span class="badge-new">NEW</span>` : "") +
         `<div class="dex-emoji">${done ? plantVisual(p, "dex-photo") : "🌱"}</div>` +
         `<div class="dex-name">${done ? p.name : "？？？"}</div>`;
