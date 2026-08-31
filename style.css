@@ -54,6 +54,8 @@ html, body {
   margin: 0 auto;
   min-height: 100vh;
   min-height: 100dvh;
+  container-type: inline-size;   /* 폰트 clamp가 창 폭(vw)이 아닌 앱 폭(cqw) 기준이 되도록 */
+  container-name: appwrap;
   display: flex;
   flex-direction: column;
   background:
@@ -101,7 +103,7 @@ html, body {
 }
 
 /* ===== 메인/뷰 ===== */
-#main-view { flex: 1; padding: 18px 16px 190px; overflow-y: auto; }
+#main-view { flex: 1; padding: 18px 16px calc(env(safe-area-inset-bottom) + 150px); overflow-y: auto; }
 .view { display: none; animation: fade 0.35s ease; }
 .view.active { display: block; }
 @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -241,20 +243,26 @@ html, body {
 .cert-locked i { width: 28px; height: 28px; margin-bottom: 8px; color: #c9bd9b; }
 
 /* ===== 플로팅 스캔 버튼 ===== */
+/* QR 스캔 버튼: 하단 탭바 바로 위에 고정된 넓은 바 형태 (콘텐츠를 가리지 않음) */
 .scan-fab {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 92px;
-  min-width: 200px; height: 60px; border-radius: 999px; border: none;
-  padding: 0 26px; gap: 10px;
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom) + 66px);  /* 탭바 높이만큼 위로 */
+  width: 100%; max-width: 480px;
+  height: 58px; border-radius: 0; border: none;
+  padding: 0 16px 4px; gap: 10px;   /* 상단 border(4px)로 밀린 콘텐츠를 하단 padding으로 상쇄해 수직 중앙 */
   background: linear-gradient(135deg, var(--gold), #d18e1c); color: #fff;
-  display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 30;
-  box-shadow: 0 8px 22px rgba(209,142,28,0.5);
-  font-size: 19px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 24;
+  box-shadow: 0 -4px 14px rgba(0,0,0,0.12);
+  font-size: 19px; font-weight: 800; line-height: 1;
 }
-.scan-fab i { width: 28px; height: 28px; }
-.scan-fab .scan-fab-label { white-space: nowrap; }
-/* 스크롤 중: 뒤 콘텐츠가 잘 보이도록 반투명 처리(클릭은 그대로 가능) */
-.scan-fab { transition: opacity 0.25s ease; }
-.scan-fab.scrolling { opacity: 0.4; }
+/* 아이콘·텍스트를 바 정중앙에 배치 (픽셀 폰트의 위쪽 쏠림 보정) */
+.scan-fab i {
+  width: 28px; height: 28px; display: block; flex-shrink: 0;
+}
+.scan-fab .scan-fab-label {
+  white-space: nowrap; line-height: 1;
+  display: inline-flex; align-items: center;
+}
 
 /* ===== 하단 탭 바 ===== */
 .tab-bar {
@@ -281,6 +289,7 @@ html, body {
 .modal-overlay.open { display: flex; animation: fade 0.25s ease; }
 
 .modal-card {
+  container-type: inline-size;
   background: var(--cream-card); border-radius: 22px; width: 100%; max-width: 380px;
   overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: pop 0.3s cubic-bezier(.2,.9,.3,1.2);
 }
@@ -309,6 +318,7 @@ html, body {
 
 /* ===== 수집 축하 팝업 ===== */
 .collect-card {
+  container-type: inline-size;
   background: var(--cream-card); border-radius: 24px; width: 100%; max-width: 320px;
   padding: 30px 24px 26px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   animation: pop 0.4s cubic-bezier(.2,.9,.3,1.3);
@@ -339,6 +349,7 @@ html, body {
 
 /* ===== 스캐너 모달 ===== */
 .scanner-card {
+  container-type: inline-size;
   background: var(--cream-card); border-radius: 22px; width: 100%; max-width: 380px;
   padding: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
 }
@@ -407,62 +418,62 @@ html, body {
    가시성 향상 (노년층 접근성) — 폰트/버튼/탭 확대
    ============================================================ */
 /* 헤더 */
-.header-text h1 { font-size: clamp(17px, 4.9vw, 21px); white-space: nowrap; letter-spacing: -0.6px; }
-.header-text p  { font-size: clamp(10px, 3vw, 12px); opacity: 0.9; font-family: var(--font-pixel); }
+.header-text h1 { font-size: clamp(17px, 4.9cqw, 21px); white-space: nowrap; letter-spacing: -0.6px; }
+.header-text p  { font-size: clamp(10px, 3cqw, 12px); opacity: 0.9; font-family: var(--font-pixel); }
 .logo-mark { width: 46px; height: 46px; }
 .logo-mark i { width: 26px; height: 26px; }
 
 /* 진행도 */
-.progress-label { font-size: clamp(13px, 3.9vw, 16px); }
+.progress-label { font-size: clamp(13px, 3.9cqw, 16px); }
 .progress-bar { height: 14px; }
 
 /* 섹션 제목/설명 */
-.section-head h2 { font-size: clamp(19px, 5.4vw, 23px); }
+.section-head h2 { font-size: clamp(19px, 5.4cqw, 23px); }
 .section-head h2 i { width: 22px; height: 22px; }
-.section-head p  { font-size: clamp(13px, 3.9vw, 16px); }
+.section-head p  { font-size: clamp(13px, 3.9cqw, 16px); }
 
 /* 지도 범례 / 구역 라벨 */
-.legend { font-size: clamp(13px, 3.9vw, 16px); gap: 22px; }
+.legend { font-size: clamp(13px, 3.9cqw, 16px); gap: 22px; }
 .legend .dot { width: 14px; height: 14px; }
-.zone-label { font-size: clamp(11px, 3.3vw, 14px); padding: 3px 9px; }
+.zone-label { font-size: clamp(11px, 3.3cqw, 14px); padding: 3px 9px; }
 
 /* 도감 카드 */
-.dex-name { font-size: clamp(13px, 3.9vw, 16px); }
-.dex-num  { font-size: clamp(10px, 2.8vw, 12px); }
+.dex-name { font-size: clamp(13px, 3.9cqw, 16px); }
+.dex-num  { font-size: clamp(10px, 2.8cqw, 12px); }
 
 /* 뱃지 카드 */
-.badge-title { font-size: clamp(13px, 3.9vw, 16px); }
-.badge-desc  { font-size: clamp(11px, 3.2vw, 13px); line-height: 1.4; }
+.badge-title { font-size: clamp(13px, 3.9cqw, 16px); }
+.badge-desc  { font-size: clamp(11px, 3.2cqw, 13px); line-height: 1.4; }
 .badge-icon { width: 60px; height: 60px; }
 .badge-icon i { width: 30px; height: 30px; }
 
 /* 하단 탭 바 (핵심 내비게이션) */
-.tab-btn { font-size: clamp(12px, 3.6vw, 15px); padding: 12px 0 14px; }
+.tab-btn { font-size: clamp(12px, 3.6cqw, 15px); padding: 12px 0 14px; }
 .tab-btn i { width: 27px; height: 27px; }
 
 /* 식물 상세 모달 */
-.pm-name { font-size: clamp(21px, 6.2vw, 26px); }
-.pm-sci  { font-size: clamp(13px, 3.9vw, 16px); }
-.pm-tag  { font-size: clamp(12px, 3.6vw, 15px); padding: 6px 12px; }
-.pm-desc { font-size: clamp(14px, 4.1vw, 17px); line-height: 1.65; }
-.pm-locked-note { font-size: clamp(13px, 3.9vw, 16px); }
+.pm-name { font-size: clamp(21px, 6.2cqw, 26px); }
+.pm-sci  { font-size: clamp(13px, 3.9cqw, 16px); }
+.pm-tag  { font-size: clamp(12px, 3.6cqw, 15px); padding: 6px 12px; }
+.pm-desc { font-size: clamp(14px, 4.1cqw, 17px); line-height: 1.65; }
+.pm-locked-note { font-size: clamp(13px, 3.9cqw, 16px); }
 .pm-locked-note i { width: 20px; height: 20px; }
-.pm-found { font-size: clamp(12px, 3.6vw, 15px); }
+.pm-found { font-size: clamp(12px, 3.6cqw, 15px); }
 
 /* 수집/오답 팝업 */
-.collect-badge { font-size: clamp(12px, 3.6vw, 15px); }
-.collect-name  { font-size: clamp(22px, 6.7vw, 28px); }
-.collect-sci   { font-size: clamp(13px, 3.9vw, 16px); }
-.collect-msg   { font-size: clamp(14px, 4.1vw, 17px); line-height: 1.6; }
-.collect-next  { font-size: clamp(13px, 3.9vw, 16px); line-height: 1.6; }
-.collect-btn   { font-size: clamp(15px, 4.4vw, 18px); padding: 15px 30px; }
+.collect-badge { font-size: clamp(12px, 3.6cqw, 15px); }
+.collect-name  { font-size: clamp(22px, 6.7cqw, 28px); }
+.collect-sci   { font-size: clamp(13px, 3.9cqw, 16px); }
+.collect-msg   { font-size: clamp(14px, 4.1cqw, 17px); line-height: 1.6; }
+.collect-next  { font-size: clamp(13px, 3.9cqw, 16px); line-height: 1.6; }
+.collect-btn   { font-size: clamp(15px, 4.4cqw, 18px); padding: 15px 30px; }
 
 /* 지도 목표 완료 배너 */
-.map-clear-banner { font-size: clamp(13px, 3.9vw, 16px); padding: 10px 20px; }
+.map-clear-banner { font-size: clamp(13px, 3.9cqw, 16px); padding: 10px 20px; }
 
 /* QR 스캐너 모달 */
-.scanner-head h3 { font-size: clamp(17px, 4.9vw, 20px); }
-.scanner-hint { font-size: clamp(13px, 3.9vw, 16px); }
+.scanner-head h3 { font-size: clamp(17px, 4.9cqw, 20px); }
+.scanner-hint { font-size: clamp(13px, 3.9cqw, 16px); }
 
 /* ============================================================
    입장 코드 로그인 화면
@@ -648,19 +659,19 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .tab-bar {
   background: var(--cream-card);
   border-top: 4px solid var(--wood);
-  box-shadow: 0 -3px 0 var(--wood-dark);
 }
 .tab-btn.active { color: var(--forest-deep); }
 .tab-btn.active i { filter: drop-shadow(0 2px 0 var(--gold-soft)); }
 
-/* ---- QR 스캔 버튼: 골드 크레스트 픽셀 버튼 ---- */
+/* ---- QR 스캔 버튼: 하단 고정 바 (골드 크레스트 픽셀 톤) ---- */
 .scan-fab {
-  border-radius: 8px;
-  border: 3px solid var(--wood-dark);
+  border-radius: 0;
+  border: 4px solid var(--wood);   /* 상하좌우 테두리로 버튼감 강화 */
+  border-bottom: none;             /* 아래는 탭바 상단선과 맞닿으므로 생략 */
   background: repeating-linear-gradient(90deg, var(--gold) 0 10px, var(--gold-soft) 10px 20px);
   color: var(--wood-dark);
   text-shadow: 1px 1px 0 rgba(255,255,255,0.4);
-  box-shadow: 0 4px 0 var(--wood-dark), 0 8px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 -3px 10px rgba(0,0,0,0.18);
 }
 
 /* ---- 모달/팝업/버튼: 양피지 카드 + 목재 테두리 ---- */
@@ -755,7 +766,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .logout-btn {
   flex-shrink: 0;                                 /* 버튼은 안 줄어듦/안 밀림 */
   align-self: flex-start;
-  padding: 5px 12px; font-size: clamp(12px, 3.4vw, 14px);
+  padding: 5px 12px; font-size: clamp(12px, 3.4cqw, 14px);
   gap: 4px; max-width: 40vw;
 }
 .logout-btn span { white-space: nowrap; }
@@ -816,7 +827,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 }
 .pin-label {
   font-family: var(--font-pixel);
-  font-size: clamp(9px, 2.7vw, 11px); font-weight: 700;
+  font-size: clamp(9px, 2.7cqw, 11px); font-weight: 700;
   white-space: nowrap; padding: 2px 7px; border-radius: 4px;
   background: rgba(254, 249, 235, 0.96); color: var(--wood-dark);
   border: 1.5px solid #6B3E1E; box-shadow: 0 2px 3px rgba(0,0,0,0.25);
@@ -879,7 +890,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
   position: absolute; transform: translate(-50%, 0);
   z-index: 5; pointer-events: none;
   font-family: var(--font-pixel);
-  font-size: clamp(8px, 2.4vw, 10px); font-weight: 700;
+  font-size: clamp(8px, 2.4cqw, 10px); font-weight: 700;
   white-space: nowrap; padding: 2px 6px; border-radius: 4px;
   background: rgba(254, 249, 235, 0.96); color: var(--wood-dark);
   border: 1.5px solid #6B3E1E; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
@@ -899,7 +910,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .cat-filter::-webkit-scrollbar { display: none; }
 .cat-chip {
   flex-shrink: 0; font-family: var(--font-body);
-  font-size: clamp(12px, 3.4vw, 14px); font-weight: 700;
+  font-size: clamp(12px, 3.4cqw, 14px); font-weight: 700;
   padding: 8px 13px; border-radius: 999px; cursor: pointer;
   background: var(--cream-card); color: var(--wood-dark);
   border: 2px solid var(--wood-light); box-shadow: 0 2px 0 var(--wood-dark);
@@ -942,7 +953,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
   padding: 12px;
 }
 .cat-list-head {
-  font-size: clamp(12px, 3.4vw, 14px); font-weight: 700;
+  font-size: clamp(12px, 3.4cqw, 14px); font-weight: 700;
   color: var(--wood-dark); margin-bottom: 10px; line-height: 1.4;
 }
 .cat-list-head span {
@@ -954,7 +965,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 }
 .cat-list-item {
   font-family: var(--font-body);
-  font-size: clamp(13px, 3.6vw, 15px); font-weight: 700;
+  font-size: clamp(13px, 3.6cqw, 15px); font-weight: 700;
   padding: 10px 14px; border-radius: 8px; cursor: pointer;
   background: var(--parchment); color: var(--wood-dark);
   border: 2px solid var(--wood-light); box-shadow: 0 2px 0 var(--wood-dark);
@@ -1005,7 +1016,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .search-input-wrap { position: relative; margin: 4px 0 10px; }
 .search-input {
   width: 100%; font-family: var(--font-body);
-  font-size: clamp(15px, 4.2vw, 17px); font-weight: 600;
+  font-size: clamp(15px, 4.2cqw, 17px); font-weight: 600;
   padding: 13px 40px 13px 14px; border-radius: 8px;
   border: 3px solid var(--wood-light); background: var(--parchment);
   color: var(--ink); outline: none;
@@ -1032,7 +1043,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 .header-sub .current-code { margin-top: 0; }
 .today-date {
   display: inline-flex; align-items: center; gap: 5px;
-  font-size: clamp(12px, 3.4vw, 14px); font-weight: 700;
+  font-size: clamp(12px, 3.4cqw, 14px); font-weight: 700;
   color: #fff; background: rgba(255,255,255,0.16);
   border: 2px solid var(--gold-soft); border-radius: 6px;
   padding: 5px 12px; box-shadow: 0 2px 0 rgba(0,0,0,0.3);
@@ -1055,7 +1066,7 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 /* 상단에 놓인 목표 마커: 중심 정렬 */
 .map-overlay .map-pin.target { transform: translate(-50%, -50%); }
 .map-overlay .pin-bubble.target { width: 38px; height: 38px; font-size: 20px; }
-.map-overlay .pin-label { font-size: clamp(9px, 2.6vw, 11px); padding: 2px 8px; }
+.map-overlay .pin-label { font-size: clamp(9px, 2.6cqw, 11px); padding: 2px 8px; }
 
 /* ===== 로그인: 이름 + 생년월일 두 입력창 ===== */
 .login-card .login-input { margin-bottom: 10px; }

@@ -898,21 +898,6 @@
   }
 
   $("#scan-fab").addEventListener("click", startScanner);
-
-  // 스크롤 중에는 스캔 버튼을 반투명 처리해 뒤 콘텐츠 가시성을 높인다.
-  // 스크롤이 멈추면(150ms 후) 원래 불투명도로 복귀. 클릭은 항상 가능.
-  function setupScanFabScroll() {
-    const fab = $("#scan-fab");
-    const scroller = $("#main-view");
-    if (!fab || !scroller) return;
-    let idleTimer = null;
-    const onScroll = () => {
-      fab.classList.add("scrolling");
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => fab.classList.remove("scrolling"), 150);
-    };
-    scroller.addEventListener("scroll", onScroll, { passive: true });
-  }
   $("#scanner-close").addEventListener("click", () => { stopScanner(); closeModal("#scanner-modal"); });
 
   // ---------- URL 파라미터 자동 수집 (최우선 기능) ----------
@@ -1098,7 +1083,6 @@
   function boot() {
     initSupabase();
     setupLoginUI();
-    setupScanFabScroll();
     const lo = $("#logout-btn");
     if (lo) lo.addEventListener("click", doLogout);
     refreshIcons(); // 로그인 화면 아이콘 렌더
